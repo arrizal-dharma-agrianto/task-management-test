@@ -38,11 +38,6 @@ const linksList: EssentialLinkProps[] = [
     title: 'Task List',
     icon: 'list',
     link: '/task-list',
-  },
-  {
-    title: 'Task Detail',
-    icon: 'list',
-    link: '/task-detail',
   }
 ];
 
