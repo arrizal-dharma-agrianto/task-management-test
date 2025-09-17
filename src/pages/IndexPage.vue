@@ -1,24 +1,19 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <example-component
-      title="Example component"
-      active
-      :todos="todos"
-      :meta="meta"
-    ></example-component>
+    <Chart/>
   </q-page>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import type { Todo, Meta } from 'components/models';
-import ExampleComponent from 'components/ExampleComponent.vue';
+import PieChart from 'components/PieChart.vue';
 
 export default defineComponent({
   name: 'IndexPage',
 
   components: {
-    ExampleComponent,
+    Chart: PieChart,
   },
 
   setup() {
