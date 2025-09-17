@@ -7,12 +7,6 @@ export const useTaskStore = defineStore('task',{
     filter:'all',
     nextId:0,
   }),
-  getters: {
-    // filteredTasks(state){
-    //   if (state.filter === 'all') return state.tasks
-    //   return state.tasks.filter((t)=>t.status === state.filter)
-    // },
-  },
   actions:{
     addTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
       const now = new Date().toISOString()
@@ -23,7 +17,34 @@ export const useTaskStore = defineStore('task',{
         updated_at: now,
       }
       this.tasks.push(newTask)
-      console.log('✅ Task added:', newTask)
+      console.log('Task added:', newTask)
     },
+    showTask(id: string) {
+      const task = this.tasks.find(t => t.id === id)
+      if (task){
+        console.log('Task found:', task)
+        return task
+      }
+      console.log('Task not found')
+      return null
+    },
+    editTask(id: string, payload: Partial<Omit<Task,'id' | 'created_at' | 'updated_at'>>){
+      const task = this.showTask(id)
+      if (task){
+        Object.assign(task, payload)
+        console.log('Task updated:', task)
+      } else {
+        console.log('Task not found')
+      }
+    },
+    deleteTask(id: string) {
+      const task = this.showTask(id)
+      if (task) {
+        this.tasks = this.tasks.filter(t => t.id !== id)
+        console.log('Task deleted:', task)
+      } else {
+        console.log('Task not found')
+      }
+    }
   }
 })

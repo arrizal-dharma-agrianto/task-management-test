@@ -6,7 +6,9 @@
   >
     <q-card style="min-width: 350px">
       <q-card-section>
-        <div class="text-h6">Add Task</div>
+        <div class="text-h6">
+          {{ initialTask ? 'Edit Task' : 'Add Task' }}
+        </div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
@@ -16,7 +18,7 @@
         <q-select
           dense
           v-model="priority"
-          :options="['low','medium','high']"
+          :options="['low', 'medium', 'high']"
           label="Priority"
           class="q-mt-sm"
         />
@@ -38,17 +40,20 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, watch } from 'vue'
+import type { Task } from 'src/types/task'
+import type { PropType } from 'vue'
 
 export default defineComponent({
   name: 'NewTaskDialog',
   props: {
-    modelValue: {
-      type: Boolean,
-      required: true,
+    modelValue: { type: Boolean, required: true },
+    initialTask: {
+      type: Object as PropType<Task | null>,
+      default: null,
     },
   },
-  emits: ['update:modelValue', 'create-task'],
+  emits: ['update:modelValue', 'create-task', 'update-task'],
   setup(props, { emit }) {
     const title = ref('')
     const desc = ref('')
@@ -56,24 +61,51 @@ export default defineComponent({
     const priority = ref<'low' | 'medium' | 'high'>('low')
     const due_date = ref('')
 
-    function close() {
-      emit('update:modelValue', false)
-    }
+    watch(
+      () => props.initialTask,
+      (task) => {
+        if (task) {
+          title.value = task.title
+          desc.value = task.desc
+          assignee.value = task.assignee
+          priority.value = task.priority
+          due_date.value = task.due_date
+        } else {
+          resetForm()
+        }
+      },
+      { immediate: true }
+    )
 
-    function confirm() {
-      emit('create-task', {
-        title: title.value,
-        desc: desc.value,
-        assignee: assignee.value,
-        priority: priority.value,
-        due_date: due_date.value,
-      })
-      emit('update:modelValue', false)
+    function resetForm() {
       title.value = ''
       desc.value = ''
       assignee.value = ''
       priority.value = 'low'
       due_date.value = ''
+    }
+
+    function close() {
+      emit('update:modelValue', false)
+    }
+
+    function confirm() {
+      const payload = {
+        title: title.value,
+        desc: desc.value,
+        assignee: assignee.value,
+        priority: priority.value,
+        due_date: due_date.value,
+      }
+
+      if (props.initialTask) {
+        emit('update-task', payload)
+      } else {
+        emit('create-task', payload)
+      }
+
+      close()
+      resetForm()
     }
 
     return { title, desc, assignee, priority, due_date, close, confirm }
