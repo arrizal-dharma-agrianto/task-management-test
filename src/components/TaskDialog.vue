@@ -29,6 +29,7 @@
           class="q-mt-sm"
         />
         <q-checkbox
+          v-if="initialTask"
           v-model="is_complete"
           label="Mark as complete"
           class="q-mt-sm"
