@@ -2,7 +2,6 @@
   <q-dialog
     :model-value="modelValue"
     @update:model-value="val => $emit('update:modelValue', val)"
-    persistent
   >
     <q-card style="min-width: 350px">
       <q-card-section>
