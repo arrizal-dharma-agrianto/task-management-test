@@ -62,6 +62,10 @@ export const useTaskStore = defineStore('task',{
       } else {
         console.log('Task not found')
       }
-    }
+    },
+    clearTasks() {
+      this.tasks = []
+      this.saveToStorage()
+    },
   }
 })
