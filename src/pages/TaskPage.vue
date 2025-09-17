@@ -60,13 +60,13 @@
 import { defineComponent, ref, computed } from 'vue'
 import type { QTableColumn } from 'quasar'
 import { useRouter } from 'vue-router'
-import NewTaskDialog from 'src/components/NewTaskDialog.vue'
+import TaskDialog from 'components/TaskDialog.vue'
 import { useTaskStore } from 'stores/task-store';
 import type { Task } from 'src/types/task';
 
 export default defineComponent({
   name: 'TaskPage',
-  components: { NewTaskDialog },
+  components: { NewTaskDialog: TaskDialog },
   setup() {
     const router = useRouter()
     const taskStore = useTaskStore()
