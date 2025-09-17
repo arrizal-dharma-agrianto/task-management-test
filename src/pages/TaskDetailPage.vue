@@ -8,7 +8,6 @@
       </q-badge>
       <div>Assigned to: {{ task.assignee }}</div>
       <div>Due: {{ task.due_date }}</div>
-      <div>Status: {{ task.status }}</div>
     </div>
     <div v-else>
       <q-banner dense class="bg-red text-white">Task not found</q-banner>
