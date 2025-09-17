@@ -13,6 +13,14 @@
         <q-btn color="primary" label="Add Task" @click="newTask = true" />
         <NewTaskDialog v-model="newTask" @create-task="createTask" />
       </template>
+      <template v-slot:body-cell-is_complete="props">
+        <q-td :props="props">
+          <q-badge
+            :color="props.row.is_complete ? 'green' : 'grey'"
+            :label="props.row.is_complete ? 'Complete' : 'Incomplete'"
+          />
+        </q-td>
+      </template>
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <q-btn
@@ -57,7 +65,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue'
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import type { QTableColumn } from 'quasar'
 import { useRouter } from 'vue-router'
 import TaskDialog from 'components/TaskDialog.vue'
@@ -71,6 +79,10 @@ export default defineComponent({
     const router = useRouter()
     const taskStore = useTaskStore()
 
+    onMounted(() => {
+      taskStore.loadFromStorage()
+    })
+
     const tasks = computed(() => taskStore.tasks)
 
     const columns: QTableColumn[] = [
@@ -79,6 +91,7 @@ export default defineComponent({
       { name: 'priority', label: 'Priority', field: 'priority', align: 'center' },
       { name: 'assignee', label: 'Assignee', field: 'assignee', align: 'center' },
       { name: 'due_date', label: 'Due Date', field: 'due_date', align: 'center' },
+      { name: 'is_complete', label: 'Status', field: 'is_complete', align: 'center' },
       { name: 'actions', label: 'Actions', field: 'id', align: 'center' },
     ]
 

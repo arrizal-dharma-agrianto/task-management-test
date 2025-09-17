@@ -28,6 +28,11 @@
           label="Due Date"
           class="q-mt-sm"
         />
+        <q-checkbox
+          v-model="is_complete"
+          label="Mark as complete"
+          class="q-mt-sm"
+        />
       </q-card-section>
 
       <q-card-actions align="right" class="text-primary">
@@ -59,7 +64,7 @@ export default defineComponent({
     const assignee = ref('')
     const priority = ref<'low' | 'medium' | 'high'>('low')
     const due_date = ref('')
-
+    const is_complete = ref(false)
     watch(
       () => props.initialTask,
       (task) => {
@@ -69,6 +74,7 @@ export default defineComponent({
           assignee.value = task.assignee
           priority.value = task.priority
           due_date.value = task.due_date
+          is_complete.value = task.is_complete
         } else {
           resetForm()
         }
@@ -82,6 +88,7 @@ export default defineComponent({
       assignee.value = ''
       priority.value = 'low'
       due_date.value = ''
+      is_complete.value = false
     }
 
     function close() {
@@ -95,6 +102,7 @@ export default defineComponent({
         assignee: assignee.value,
         priority: priority.value,
         due_date: due_date.value,
+        is_complete: is_complete.value,
       }
 
       if (props.initialTask) {
@@ -107,7 +115,7 @@ export default defineComponent({
       resetForm()
     }
 
-    return { title, desc, assignee, priority, due_date, close, confirm }
+    return { title, desc, assignee, priority, due_date, is_complete, close, confirm }
   },
 })
 </script>
