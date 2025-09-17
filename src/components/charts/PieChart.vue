@@ -1,19 +1,17 @@
 <template>
-  <div>
-    <q-card class="no-shadow" bordered>
-      <q-card-section class="text-h6">
-        Task Overview
-      </q-card-section>
-      <q-card-section>
-        <ECharts
-          :option="options"
-          class="q-mt-md"
-          autoresize
-          style="height: 285px;"
-        />
-      </q-card-section>
-    </q-card>
-  </div>
+  <q-card>
+    <q-card-section class="text-h6">
+      Task Overview
+    </q-card-section>
+    <q-card-section>
+      <ECharts
+        :option="options"
+        class="q-mt-md"
+        autoresize
+        style="height: 285px;"
+      />
+    </q-card-section>
+  </q-card>
 </template>
 
 <script lang="ts">
