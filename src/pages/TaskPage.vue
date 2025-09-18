@@ -9,8 +9,15 @@
       bordered
       @row-click="goToDetail"
       :filter="filter"
+      selection="multiple"
+      v-model:selected="selected"
     >
       <template v-slot:top-right>
+      <div v-if="selected.length > 0" class="row items-center q-gutter-sm">
+        <q-btn color="positive" label="Mark Complete" @click="markSelected(true)" />
+        <q-btn color="grey" label="Mark Incomplete" @click="markSelected(false)" />
+      </div>
+      <div v-else class="row items-center">
         <q-btn color="primary" label="Add Task" @click="newTask = true" />
         <NewTaskDialog v-model="newTask" @create-task="createTask" />
         <q-input
@@ -58,6 +65,7 @@
         </q-input>
 
         <q-btn class="q-ml-sm" icon="filter_list" @click="show_filter = !show_filter" flat />
+      </div>
       </template>
       <template v-slot:body-cell-is_complete="props">
         <q-td :props="props">
@@ -125,7 +133,7 @@ export default defineComponent({
     const show_filter = ref(false);
     const assigneeFilter = ref('')
     const dueDateFilter = ref('')
-
+    const selected = ref<Task[]>([])
     onMounted(() => {
       taskStore.loadFromStorage();
     });
@@ -147,8 +155,6 @@ export default defineComponent({
             !dueDateFilter.value || t.due_date === dueDateFilter.value
           return (
             matchesSearch &&
-            matchesPriority &&
-            matchesStatus &&
             matchesAssignee &&
             matchesDueDate
           )
@@ -207,7 +213,12 @@ export default defineComponent({
         console.error(err);
       }
     }
-
+    function markSelected(status: boolean) {
+      selected.value.forEach(task => {
+        taskStore.editTask(task.id, { ...task, is_complete: status })
+      })
+      selected.value = []
+    }
     return {
       tasks,
       columns,
@@ -224,7 +235,9 @@ export default defineComponent({
       filter,
       show_filter,
       assigneeFilter,
-      dueDateFilter
+      dueDateFilter,
+      selected,
+      markSelected
     };
   },
 });
