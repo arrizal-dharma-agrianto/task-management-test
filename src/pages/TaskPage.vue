@@ -27,31 +27,6 @@
             <q-icon name="search" />
           </template>
         </q-input>
-
-        <q-select
-          class="q-ml-sm"
-          v-if="show_filter"
-          v-model="priorityFilter"
-          :options="['High', 'Medium', 'Low']"
-          emit-value
-          map-options
-          clearable
-          dense
-          filled
-          placeholder="Priority"
-        />
-        <q-select
-          class="q-ml-sm"
-          v-if="show_filter"
-          v-model="statusFilter"
-          :options="['complete', 'incomplete']"
-          emit-value
-          map-options
-          clearable
-          dense
-          filled
-          placeholder="Status"
-        />
         <q-input
           class="q-ml-sm"
           v-if="show_filter"
@@ -148,8 +123,6 @@ export default defineComponent({
 
     const filter = ref('');
     const show_filter = ref(false);
-    const priorityFilter = ref<string | null>(null)
-    const statusFilter = ref<string|null>(null)
     const assigneeFilter = ref('')
     const dueDateFilter = ref('')
 
@@ -165,13 +138,6 @@ export default defineComponent({
             t.title.toLowerCase().includes(filter.value.toLowerCase()) ||
             t.desc.toLowerCase().includes(filter.value.toLowerCase()) ||
             t.assignee.toLowerCase().includes(filter.value.toLowerCase())
-          const matchesPriority =
-            !priorityFilter.value || t.priority === priorityFilter.value.toLowerCase()
-
-          const matchesStatus =
-            !statusFilter.value ||
-            (statusFilter.value === 'complete' && t.is_complete) ||
-            (statusFilter.value === 'incomplete' && !t.is_complete)
 
           const matchesAssignee =
             !assigneeFilter.value ||
@@ -257,8 +223,6 @@ export default defineComponent({
       goToDetail,
       filter,
       show_filter,
-      priorityFilter,
-      statusFilter,
       assigneeFilter,
       dueDateFilter
     };
