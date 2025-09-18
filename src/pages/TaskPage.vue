@@ -70,11 +70,15 @@
           filled
           dense
           v-model="dueDateFilter"
-          mask="####-##-##"
-          placeholder="YYYY-MM-DD"
+          placeholder="Pick a date"
+          readonly
         >
           <template v-slot:append>
-            <q-icon name="event" />
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy transition-show="scale" transition-hide="scale">
+                <q-date v-model="dueDateFilter" mask="YYYY-MM-DD" />
+              </q-popup-proxy>
+            </q-icon>
           </template>
         </q-input>
 
