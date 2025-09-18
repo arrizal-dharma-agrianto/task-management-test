@@ -11,6 +11,11 @@ export const useTaskStore = defineStore('task', {
   actions: {
     loadFromStorage() {
       this.tasks = taskService.getAll()
+
+      if (this.tasks.length === 0) {
+        this.tasks = taskService.seedDummy(20)
+      }
+
       this.nextId =
         this.tasks.reduce((max, t) => Math.max(max, Number(t.id)), 0) + 1
     },

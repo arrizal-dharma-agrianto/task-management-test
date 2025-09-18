@@ -1,4 +1,5 @@
 import type { Task } from 'src/types/task'
+import { generateDummyTasks } from '../seeder/task-dummy'
 
 const STORAGE_KEY = 'task-data'
 
@@ -10,6 +11,12 @@ export const taskService = {
 
   saveAll(tasks: Task[]): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
+  },
+
+  seedDummy(count = 20): Task[] {
+    const tasks = generateDummyTasks(count)
+    this.saveAll(tasks)
+    return tasks
   },
 
   add(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>, nextId: number): Task {
