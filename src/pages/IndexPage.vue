@@ -46,8 +46,18 @@
           <q-separator />
           <q-card-actions align="around">
             <q-btn color="primary" icon="add" label="Add Task" @click="newTask = true" />
-            <q-btn color="positive" icon="done_all" label="Bulk Complete" @click="bulkComplete" />
-            <q-btn color="negative" icon="delete_sweep" label="Bulk Delete" @click="bulkDelete" />
+            <q-btn
+              color="positive"
+              icon="done_all"
+              label="Bulk Complete"
+              @click="confirmBulkComplete"
+            />
+            <q-btn
+              color="negative"
+              icon="delete_sweep"
+              label="Bulk Delete"
+              @click="confirmBulkDelete"
+            />
             <q-btn
               color="grey-8"
               icon="filter_alt"
@@ -148,6 +158,7 @@ import TaskDialog from 'components/TaskDialog.vue';
 import PriorityChart from 'components/charts/PriorityChart.vue';
 import type { Task } from 'src/types/task';
 import { taskService } from 'src/services/task-service';
+import { useQuasar } from 'quasar';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -157,6 +168,7 @@ export default defineComponent({
     PriorityChart,
   },
   setup() {
+    const $q = useQuasar();
     const taskStore = useTaskStore();
     const newTask = ref(false);
 
@@ -250,6 +262,30 @@ export default defineComponent({
       taskService.saveAll(taskStore.tasks);
     }
 
+    function confirmBulkComplete() {
+      $q.dialog({
+        title: 'Confirm',
+        message: 'Mark ALL tasks as completed?',
+        cancel: true,
+        persistent: true
+      }).onOk(() => {
+        bulkComplete();
+        $q.notify({ type: 'positive', message: 'All tasks marked as completed!' });
+      });
+    }
+
+    function confirmBulkDelete() {
+      $q.dialog({
+        title: 'Confirm',
+        message: 'Delete ALL tasks permanently?',
+        cancel: true,
+        persistent: true
+      }).onOk(() => {
+        bulkDelete();
+        $q.notify({ type: 'negative', message: 'All tasks deleted!' });
+      });
+    }
+
     function toggleFilters() {
       console.log('Filter clicked');
     }
@@ -263,11 +299,11 @@ export default defineComponent({
       priorityData,
       recentTasks,
       createTask,
-      bulkDelete,
-      bulkComplete,
       toggleFilters,
       statsData,
       loading,
+      confirmBulkDelete,
+      confirmBulkComplete
     };
   },
 });
