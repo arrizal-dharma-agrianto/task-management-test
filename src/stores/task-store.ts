@@ -1,71 +1,43 @@
-import { defineStore } from 'pinia';
-import type { Task } from 'src/types/task';
+import { defineStore } from 'pinia'
+import type { Task } from 'src/types/task'
+import { taskService } from 'src/services/task-service'
 
-const STORAGE_KEY = 'task-data'
-
-export const useTaskStore = defineStore('task',{
-  state:()=>({
-    tasks:[] as Task[],
-    filter:'all',
-    nextId:0,
+export const useTaskStore = defineStore('task', {
+  state: () => ({
+    tasks: [] as Task[],
+    filter: 'all',
+    nextId: 0,
   }),
-  actions:{
+  actions: {
     loadFromStorage() {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw) as Task[]
-        this.tasks = parsed
-        this.nextId = parsed.reduce((max,t)=> Math.max(max, Number(t.id)), 0)+1
-      }
+      this.tasks = taskService.getAll()
+      this.nextId =
+        this.tasks.reduce((max, t) => Math.max(max, Number(t.id)), 0) + 1
     },
-    saveToStorage() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.tasks))
-    },
+
     addTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
-      const now = new Date().toISOString()
-      const newTask: Task = {
-        ...payload,
-        id: String(this.nextId++),
-        created_at: now,
-        updated_at: now,
-        is_complete:false,
-      }
+      const newTask = taskService.add(payload, this.nextId++)
       this.tasks.push(newTask)
-      this.saveToStorage()
-      console.log('Task added:', newTask)
     },
-    showTask(id: string) {
-      const task = this.tasks.find(t => t.id === id)
-      if (task){
-        console.log('Task found:', task)
-        return task
-      }
-      console.log('Task not found')
-      return null
-    },
-    editTask(id: string, payload: Partial<Omit<Task,'id' | 'created_at' | 'updated_at'>>){
-      const task = this.showTask(id)
-      if (task){
-        Object.assign(task, payload)
-        this.saveToStorage()
-        console.log('Task updated:', task)
-      } else {
-        console.log('Task not found')
+
+    editTask(id: string, payload: Partial<Omit<Task, 'id' | 'created_at' | 'updated_at'>>) {
+      const updated = taskService.update(id, payload)
+      if (updated) {
+        const idx = this.tasks.findIndex((t) => t.id === id)
+        if (idx !== -1) this.tasks[idx] = updated
       }
     },
+
     deleteTask(id: string) {
-      const task = this.showTask(id)
-      if (task) {
-        this.tasks = this.tasks.filter(t => t.id !== id)
-        this.saveToStorage()
-        console.log('Task deleted:', task)
-      } else {
-        console.log('Task not found')
+      const ok = taskService.delete(id)
+      if (ok) {
+        this.tasks = this.tasks.filter((t) => t.id !== id)
       }
     },
+
     clearTasks() {
+      taskService.clear()
       this.tasks = []
-      this.saveToStorage()
     },
-  }
+  },
 })

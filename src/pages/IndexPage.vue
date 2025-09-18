@@ -2,9 +2,7 @@
   <q-page padding>
     <div class="q-mb-lg">
       <div class="text-h4 text-weight-bold">Task Management Dashboard</div>
-      <div class="text-subtitle2 text-grey">
-        Overview of your tasks and productivity insights
-      </div>
+      <div class="text-subtitle2 text-grey">Overview of your tasks and productivity insights</div>
     </div>
 
     <div class="row q-col-gutter-md">
@@ -20,11 +18,7 @@
 
           <q-card-section>
             <div class="row q-col-gutter-md">
-              <div
-                class="col-3"
-                v-for="stat in statsData"
-                :key="stat.label"
-              >
+              <div class="col-3" v-for="stat in statsData" :key="stat.label">
                 <q-card bordered flat>
                   <q-card-section>
                     <div class="row items-center justify-between">
@@ -51,24 +45,9 @@
           </q-card-section>
           <q-separator />
           <q-card-actions align="around">
-            <q-btn
-              color="primary"
-              icon="add"
-              label="Add Task"
-              @click="newTask = true"
-            />
-            <q-btn
-              color="positive"
-              icon="done_all"
-              label="Bulk Complete"
-              @click="bulkComplete"
-            />
-            <q-btn
-              color="negative"
-              icon="delete_sweep"
-              label="Bulk Delete"
-              @click="bulkDelete"
-            />
+            <q-btn color="primary" icon="add" label="Add Task" @click="newTask = true" />
+            <q-btn color="positive" icon="done_all" label="Bulk Complete" @click="bulkComplete" />
+            <q-btn color="negative" icon="delete_sweep" label="Bulk Delete" @click="bulkDelete" />
             <q-btn
               color="grey-8"
               icon="filter_alt"
@@ -144,9 +123,7 @@
             <q-item v-for="task in recentTasks" :key="task.id">
               <q-item-section>
                 <q-item-label>{{ task.title }}</q-item-label>
-                <q-item-label caption>
-                  Updated: {{ task.updated_at }}
-                </q-item-label>
+                <q-item-label caption> Updated: {{ task.updated_at }} </q-item-label>
               </q-item-section>
               <q-item-section side>
                 <q-badge
@@ -170,6 +147,7 @@ import { useTaskStore } from 'stores/task-store';
 import TaskDialog from 'components/TaskDialog.vue';
 import PriorityChart from 'components/charts/PriorityChart.vue';
 import type { Task } from 'src/types/task';
+import { taskService } from 'src/services/task-service';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -182,16 +160,16 @@ export default defineComponent({
     const taskStore = useTaskStore();
     const newTask = ref(false);
 
-    const loading = ref(true)
+    const loading = ref(true);
 
     onMounted(async () => {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-        taskStore.loadFromStorage()
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        taskStore.loadFromStorage();
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    })
+    });
 
     const statsData = computed(() => [
       // {
@@ -264,11 +242,12 @@ export default defineComponent({
 
     function bulkComplete() {
       taskStore.tasks.forEach((t) => (t.is_complete = true));
-      taskStore.saveToStorage();
+      taskService.saveAll(taskStore.tasks);
     }
 
     function bulkDelete() {
-      taskStore.clearTasks();
+      taskStore.tasks = [];
+      taskService.saveAll(taskStore.tasks);
     }
 
     function toggleFilters() {
@@ -288,8 +267,13 @@ export default defineComponent({
       bulkComplete,
       toggleFilters,
       statsData,
-      loading
+      loading,
     };
   },
 });
 </script>
+
+<!-- - Ensure reusability of components (TaskCard, TaskForm, TaskList, DashboardWidget)-->
+<!-- - Add service abstraction (future API-ready layer)-->
+<!-- - Write documentation (README: setup + architecture + decisions)-->
+<!-- - Add time tracking log (setup, core, UI/UX, polish, docs)-->

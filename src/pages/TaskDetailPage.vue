@@ -38,7 +38,7 @@ export default {
     const taskId = route.params.id as string
 
     const task = computed<Task | null>(() => {
-      return taskStore.showTask(taskId)
+      return taskStore.tasks.find((t) => t.id === taskId) ?? null
     })
 
     return { task }
