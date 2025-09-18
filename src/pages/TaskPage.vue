@@ -28,6 +28,56 @@
           </template>
         </q-input>
 
+        <q-select
+          class="q-ml-sm"
+          v-if="show_filter"
+          v-model="priorityFilter"
+          :options="['High', 'Medium', 'Low']"
+          emit-value
+          map-options
+          clearable
+          dense
+          filled
+          placeholder="Priority"
+        />
+        <q-select
+          class="q-ml-sm"
+          v-if="show_filter"
+          v-model="statusFilter"
+          :options="['complete', 'incomplete']"
+          emit-value
+          map-options
+          clearable
+          dense
+          filled
+          placeholder="Status"
+        />
+        <q-input
+          class="q-ml-sm"
+          v-if="show_filter"
+          v-model="assigneeFilter"
+          dense
+          filled
+          placeholder="Assignee"
+        >
+          <template v-slot:append>
+            <q-icon name="person"/>
+          </template>
+        </q-input>
+        <q-input
+          class="q-ml-sm"
+          v-if="show_filter"
+          filled
+          dense
+          v-model="dueDateFilter"
+          mask="####-##-##"
+          placeholder="YYYY-MM-DD"
+        >
+          <template v-slot:append>
+            <q-icon name="event" />
+          </template>
+        </q-input>
+
         <q-btn class="q-ml-sm" icon="filter_list" @click="show_filter = !show_filter" flat />
       </template>
       <template v-slot:body-cell-is_complete="props">
@@ -94,18 +144,45 @@ export default defineComponent({
 
     const filter = ref('');
     const show_filter = ref(false);
+    const priorityFilter = ref<string | null>(null)
+    const statusFilter = ref<string|null>(null)
+    const assigneeFilter = ref('')
+    const dueDateFilter = ref('')
 
     onMounted(() => {
       taskStore.loadFromStorage();
     });
 
     const tasks = computed(() => {
-      if (!filter.value) return taskStore.tasks;
       return taskStore.tasks.filter(
-        (t) =>
-          t.title.toLowerCase().includes(filter.value.toLowerCase()) ||
-          t.desc.toLowerCase().includes(filter.value.toLowerCase()) ||
-          t.assignee.toLowerCase().includes(filter.value.toLowerCase()),
+        (t) =>{
+          const matchesSearch =
+            !filter.value ||
+            t.title.toLowerCase().includes(filter.value.toLowerCase()) ||
+            t.desc.toLowerCase().includes(filter.value.toLowerCase()) ||
+            t.assignee.toLowerCase().includes(filter.value.toLowerCase())
+          const matchesPriority =
+            !priorityFilter.value || t.priority === priorityFilter.value.toLowerCase()
+
+          const matchesStatus =
+            !statusFilter.value ||
+            (statusFilter.value === 'complete' && t.is_complete) ||
+            (statusFilter.value === 'incomplete' && !t.is_complete)
+
+          const matchesAssignee =
+            !assigneeFilter.value ||
+            t.assignee.toLowerCase().includes(assigneeFilter.value.toLowerCase())
+
+          const matchesDueDate =
+            !dueDateFilter.value || t.due_date === dueDateFilter.value
+          return (
+            matchesSearch &&
+            matchesPriority &&
+            matchesStatus &&
+            matchesAssignee &&
+            matchesDueDate
+          )
+        }
       );
     });
 
@@ -176,6 +253,10 @@ export default defineComponent({
       goToDetail,
       filter,
       show_filter,
+      priorityFilter,
+      statusFilter,
+      assigneeFilter,
+      dueDateFilter
     };
   },
 });
