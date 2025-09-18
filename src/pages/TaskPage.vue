@@ -11,62 +11,87 @@
       :filter="filter"
       selection="multiple"
       v-model:selected="selected"
+      :loading="loading"
     >
       <template v-slot:top-right>
-      <div v-if="selected.length > 0" class="row items-center q-gutter-sm">
-        <q-btn color="positive" label="Mark Complete" @click="markSelected(true)" />
-        <q-btn color="grey" label="Mark Incomplete" @click="markSelected(false)" />
-      </div>
-      <div v-else class="row items-center">
-        <q-btn color="primary" label="Add Task" @click="newTask = true" />
-        <NewTaskDialog v-model="newTask" @create-task="createTask" />
-        <q-input
-          class="q-ml-sm"
-          v-if="show_filter"
-          filled
-          borderless
-          dense
-          debounce="300"
-          v-model="filter"
-          placeholder="Search"
-        >
-          <template v-slot:append>
-            <q-icon name="search" />
-          </template>
-        </q-input>
-        <q-input
-          class="q-ml-sm"
-          v-if="show_filter"
-          v-model="assigneeFilter"
-          dense
-          filled
-          placeholder="Assignee"
-        >
-          <template v-slot:append>
-            <q-icon name="person"/>
-          </template>
-        </q-input>
-        <q-input
-          class="q-ml-sm"
-          v-if="show_filter"
-          filled
-          dense
-          v-model="dueDateFilter"
-          placeholder="Pick a date"
-          readonly
-        >
-          <template v-slot:append>
-            <q-icon name="event" class="cursor-pointer">
-              <q-popup-proxy transition-show="scale" transition-hide="scale">
-                <q-date v-model="dueDateFilter" mask="YYYY-MM-DD" />
-              </q-popup-proxy>
-            </q-icon>
-          </template>
-        </q-input>
+        <div v-if="selected.length > 0" class="row items-center q-gutter-sm">
+          <q-btn color="positive" label="Mark Complete" @click="markSelected(true)" />
+          <q-btn color="grey" label="Mark Incomplete" @click="markSelected(false)" />
+        </div>
+        <div v-else class="row items-center">
+          <q-btn color="primary" label="Add Task" @click="newTask = true" />
+          <NewTaskDialog v-model="newTask" @create-task="createTask" />
 
-        <q-btn class="q-ml-sm" icon="filter_list" @click="show_filter = !show_filter" flat />
-      </div>
+          <q-input
+            class="q-ml-sm"
+            v-if="show_filter"
+            filled
+            borderless
+            dense
+            debounce="300"
+            v-model="filter"
+            placeholder="Search"
+          >
+            <template v-slot:append>
+              <q-icon name="search" />
+            </template>
+          </q-input>
+
+          <q-input
+            class="q-ml-sm"
+            v-if="show_filter"
+            v-model="assigneeFilter"
+            dense
+            filled
+            placeholder="Assignee"
+          >
+            <template v-slot:append>
+              <q-icon name="person" />
+            </template>
+          </q-input>
+
+          <q-input
+            class="q-ml-sm"
+            v-if="show_filter"
+            filled
+            dense
+            v-model="dueDateFilter"
+            placeholder="Pick a date"
+            readonly
+          >
+            <template v-slot:append>
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy transition-show="scale" transition-hide="scale">
+                  <q-date v-model="dueDateFilter" mask="YYYY-MM-DD" />
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+
+          <q-btn class="q-ml-sm" icon="filter_list" @click="show_filter = !show_filter" flat />
+        </div>
       </template>
+
+      <template v-slot:loading>
+        <q-inner-loading showing>
+          <q-spinner color="primary" size="50px" />
+        </q-inner-loading>
+      </template>
+
+      <template v-slot:no-data>
+        <div class="full-width row flex-center text-grey-7 q-pa-md">
+          <q-icon name="inbox" size="md" class="q-mr-sm" />
+          <span>No tasks found</span>
+        </div>
+      </template>
+
+      <template v-if="error" v-slot:top>
+        <div class="bg-red-2 text-red-9 q-pa-sm q-mb-sm rounded-borders">
+          <q-icon name="warning" class="q-mr-sm" />
+          {{ error }}
+        </div>
+      </template>
+
       <template v-slot:body-cell-is_complete="props">
         <q-td :props="props">
           <q-badge
@@ -75,6 +100,7 @@
           />
         </q-td>
       </template>
+
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <q-btn
@@ -96,6 +122,7 @@
         </q-td>
       </template>
     </q-table>
+
     <NewTaskDialog v-model="editDialog" :initial-task="selectedTask" @update-task="updateTask" />
 
     <q-dialog v-model="deleteDialog">
@@ -104,7 +131,6 @@
           <q-icon name="warning" color="warning" size="md" class="q-mr-sm" />
           <span>Are you sure you want to delete this task?</span>
         </q-card-section>
-
         <q-card-actions align="right">
           <q-btn flat label="Cancel" v-close-popup />
           <q-btn flat label="Delete" color="negative" @click="confirmDelete" />
@@ -131,35 +157,40 @@ export default defineComponent({
 
     const filter = ref('');
     const show_filter = ref(false);
-    const assigneeFilter = ref('')
-    const dueDateFilter = ref('')
-    const selected = ref<Task[]>([])
+    const assigneeFilter = ref('');
+    const dueDateFilter = ref('');
+    const selected = ref<Task[]>([]);
+
+    const loading = ref(true);
+    const error = ref<string | null>(null);
+
     onMounted(() => {
-      taskStore.loadFromStorage();
+      try {
+        taskStore.loadFromStorage();
+      } catch (err) {
+        error.value = 'Failed to load tasks. Please try again.';
+        console.error(err);
+      } finally {
+        loading.value = false;
+      }
     });
 
     const tasks = computed(() => {
-      return taskStore.tasks.filter(
-        (t) =>{
-          const matchesSearch =
-            !filter.value ||
-            t.title.toLowerCase().includes(filter.value.toLowerCase()) ||
-            t.desc.toLowerCase().includes(filter.value.toLowerCase()) ||
-            t.assignee.toLowerCase().includes(filter.value.toLowerCase())
+      return taskStore.tasks.filter((t) => {
+        const matchesSearch =
+          !filter.value ||
+          t.title.toLowerCase().includes(filter.value.toLowerCase()) ||
+          t.desc.toLowerCase().includes(filter.value.toLowerCase()) ||
+          t.assignee.toLowerCase().includes(filter.value.toLowerCase());
 
-          const matchesAssignee =
-            !assigneeFilter.value ||
-            t.assignee.toLowerCase().includes(assigneeFilter.value.toLowerCase())
+        const matchesAssignee =
+          !assigneeFilter.value ||
+          t.assignee.toLowerCase().includes(assigneeFilter.value.toLowerCase());
 
-          const matchesDueDate =
-            !dueDateFilter.value || t.due_date === dueDateFilter.value
-          return (
-            matchesSearch &&
-            matchesAssignee &&
-            matchesDueDate
-          )
-        }
-      );
+        const matchesDueDate = !dueDateFilter.value || t.due_date === dueDateFilter.value;
+
+        return matchesSearch && matchesAssignee && matchesDueDate;
+      });
     });
 
     const columns: QTableColumn[] = [
@@ -179,7 +210,6 @@ export default defineComponent({
 
     function createTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
       taskStore.addTask(payload);
-      console.log('All tasks in store:', taskStore.tasks);
     }
 
     function openEditDialog(task: Task) {
@@ -210,15 +240,18 @@ export default defineComponent({
       try {
         await router.push({ name: 'task-detail', params: { id: row.id } });
       } catch (err) {
+        error.value = 'Failed to navigate to task detail.';
         console.error(err);
       }
     }
+
     function markSelected(status: boolean) {
-      selected.value.forEach(task => {
-        taskStore.editTask(task.id, { ...task, is_complete: status })
-      })
-      selected.value = []
+      selected.value.forEach((task) => {
+        taskStore.editTask(task.id, { ...task, is_complete: status });
+      });
+      selected.value = [];
     }
+
     return {
       tasks,
       columns,
@@ -237,7 +270,9 @@ export default defineComponent({
       assigneeFilter,
       dueDateFilter,
       selected,
-      markSelected
+      markSelected,
+      loading,
+      error,
     };
   },
 });
