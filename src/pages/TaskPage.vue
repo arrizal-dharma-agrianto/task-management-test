@@ -17,6 +17,7 @@
         <div v-if="selected.length > 0" class="row items-center q-gutter-sm">
           <q-btn color="positive" label="Mark Complete" @click="markSelected(true)" />
           <q-btn color="grey" label="Mark Incomplete" @click="markSelected(false)" />
+          <q-btn color="negative" label="Bulk Delete" @click="openBulkDeleteConfirm" />
         </div>
         <div v-else class="row items-center">
           <q-btn color="primary" label="Add Task" @click="newTask = true" />
@@ -75,6 +76,16 @@
       icon="warning"
       @confirm="confirmDelete"
     />
+    <ConfirmDialog
+      v-model="bulkDeleteDialog"
+      title="Delete Tasks"
+      message="Are you sure you want to delete the selected tasks?"
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      color="negative"
+      icon="warning"
+      @confirm="confirmBulkDelete"
+    />
   </q-page>
 </template>
 
@@ -110,6 +121,7 @@ export default defineComponent({
     const assigneeFilter = ref('');
     const dueDateFilter = ref('');
     const selected = ref<Task[]>([]);
+    const bulkDeleteDialog = ref(false);
 
     const loading = ref(true);
     const error = ref<string | null>(null);
@@ -202,7 +214,17 @@ export default defineComponent({
       });
       selected.value = [];
     }
+    function openBulkDeleteConfirm() {
+      bulkDeleteDialog.value = true;
+    }
 
+    function confirmBulkDelete() {
+      selected.value.forEach((task) => {
+        taskStore.deleteTask(task.id);
+      });
+      selected.value = [];
+      bulkDeleteDialog.value = false;
+    }
     return {
       tasks,
       columns,
@@ -224,6 +246,9 @@ export default defineComponent({
       markSelected,
       loading,
       error,
+      bulkDeleteDialog,
+      openBulkDeleteConfirm,
+      confirmBulkDelete,
     };
   },
 });
