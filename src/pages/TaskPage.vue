@@ -22,53 +22,11 @@
           <q-btn color="primary" label="Add Task" @click="newTask = true" />
           <NewTaskDialog v-model="newTask" @create-task="createTask" />
 
-          <q-input
-            class="q-ml-sm"
-            v-if="show_filter"
-            filled
-            borderless
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Search"
-          >
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
-
-          <q-input
-            class="q-ml-sm"
-            v-if="show_filter"
-            v-model="assigneeFilter"
-            dense
-            filled
-            placeholder="Assignee"
-          >
-            <template v-slot:append>
-              <q-icon name="person" />
-            </template>
-          </q-input>
-
-          <q-input
-            class="q-ml-sm"
-            v-if="show_filter"
-            filled
-            dense
-            v-model="dueDateFilter"
-            placeholder="Pick a date"
-            readonly
-          >
-            <template v-slot:append>
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy transition-show="scale" transition-hide="scale">
-                  <q-date v-model="dueDateFilter" mask="YYYY-MM-DD" />
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
-
-          <q-btn class="q-ml-sm" icon="filter_list" @click="show_filter = !show_filter" flat />
+          <TaskFilterBar
+            v-model:search="filter"
+            v-model:assignee="assigneeFilter"
+            v-model:dueDate="dueDateFilter"
+          />
         </div>
       </template>
 
@@ -141,10 +99,11 @@ import { useRouter } from 'vue-router';
 import TaskDialog from 'components/TaskDialog.vue';
 import { useTaskStore } from 'stores/task-store';
 import type { Task } from 'src/types/task';
+import TaskFilterBar from 'components/TaskFilterBar.vue'
 
 export default defineComponent({
   name: 'TaskPage',
-  components: { NewTaskDialog: TaskDialog },
+  components: { NewTaskDialog: TaskDialog, TaskFilterBar  },
   setup() {
     const router = useRouter();
     const taskStore = useTaskStore();

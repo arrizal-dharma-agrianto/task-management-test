@@ -127,13 +127,13 @@ export default defineComponent({
     });
 
     const statsData = computed(() => [
-      // {
-      //   label: 'Total',
-      //   value: totalTasks.value,
-      //   color: 'text-primary',
-      //   bg: 'primary',
-      //   icon: 'task',
-      // },
+      {
+        label: 'Total',
+        value: totalTasks.value,
+        color: 'text-primary',
+        bg: 'primary',
+        icon: 'task',
+      },
       {
         label: 'Completed',
         value: completedTasks.value,
@@ -155,7 +155,6 @@ export default defineComponent({
         bg: 'negative',
         icon: 'error',
       },
-      { label: 'High Priority', value: 5, color: 'text-purple', bg: 'purple', icon: 'bolt' },
     ]);
     const totalTasks = computed(() => taskStore.tasks.length);
     const completedTasks = computed(() => taskStore.tasks.filter((t) => t.is_complete).length);
