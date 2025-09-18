@@ -72,12 +72,6 @@
         </div>
       </template>
 
-      <template v-slot:loading>
-        <q-inner-loading showing>
-          <q-spinner color="primary" size="50px" />
-        </q-inner-loading>
-      </template>
-
       <template v-slot:no-data>
         <div class="full-width row flex-center text-grey-7 q-pa-md">
           <q-icon name="inbox" size="md" class="q-mr-sm" />
@@ -164,14 +158,15 @@ export default defineComponent({
     const loading = ref(true);
     const error = ref<string | null>(null);
 
-    onMounted(() => {
+    onMounted(async () => {
       try {
+        await new Promise((resolve) => setTimeout(resolve, 500))
         taskStore.loadFromStorage();
       } catch (err) {
         error.value = 'Failed to load tasks. Please try again.';
         console.error(err);
       } finally {
-        loading.value = false;
+          loading.value = false
       }
     });
 

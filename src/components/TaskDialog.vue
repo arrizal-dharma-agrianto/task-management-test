@@ -59,7 +59,7 @@
 
         <q-card-actions align="right" class="text-primary">
           <q-btn flat label="Cancel" @click="close" />
-          <q-btn flat label="Confirm" type="submit" />
+          <q-btn flat label="Confirm" type="submit" :loading="loading" :disable="loading" />
         </q-card-actions>
       </q-form>
     </q-card>
@@ -92,6 +92,7 @@ export default defineComponent({
     const priority = ref<'low' | 'medium' | 'high'>('low');
     const due_date = ref('');
     const is_complete = ref(false);
+    const loading = ref(false);
 
     watch(
       () => props.initialTask,
@@ -137,23 +138,33 @@ export default defineComponent({
         return;
       }
 
-      const payload = {
-        title: title.value,
-        desc: desc.value,
-        assignee: assignee.value,
-        priority: priority.value,
-        due_date: due_date.value,
-        is_complete: is_complete.value,
-      };
+      loading.value = true;
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      if (props.initialTask) {
-        emit('update-task', payload);
-      } else {
-        emit('create-task', payload);
+        const payload = {
+          title: title.value,
+          desc: desc.value,
+          assignee: assignee.value,
+          priority: priority.value,
+          due_date: due_date.value,
+          is_complete: is_complete.value,
+        };
+
+        if (props.initialTask) {
+          emit('update-task', payload);
+        } else {
+          emit('create-task', payload);
+        }
+
+        close();
+        resetForm();
+      } catch (err) {
+        console.log(err);
+        $q.notify({ type: 'negative', message: 'Failed to save task'});
+      } finally {
+        loading.value = false;
       }
-
-      close();
-      resetForm();
     }
 
     return {
@@ -166,6 +177,7 @@ export default defineComponent({
       close,
       confirm,
       formRef,
+      loading,
     };
   },
 });
