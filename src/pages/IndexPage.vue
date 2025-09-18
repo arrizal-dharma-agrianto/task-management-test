@@ -20,12 +20,7 @@
 
     <DashboardWidget title="Quick Actions">
       <q-card-actions align="around">
-        <q-btn
-          color="primary"
-          icon="add"
-          label="Add Task"
-          @click="newTask = true"
-        />
+        <q-btn color="primary" icon="add" label="Add Task" @click="newTask = true" />
         <q-btn
           color="positive"
           icon="done_all"
@@ -38,58 +33,30 @@
           label="Bulk Delete"
           @click="bulkDeleteDialog = true"
         />
-        <q-btn
-          color="grey-8"
-          icon="filter_alt"
-          label="Filter & Search"
-          @click="toggleFilters"
-        />
+        <q-btn color="grey-8" icon="filter_alt" label="Filter & Search" @click="toggleFilters" />
       </q-card-actions>
     </DashboardWidget>
-    <q-dialog v-model="bulkCompleteDialog">
-      <q-card>
-        <q-card-section class="row items-center">
-          <q-icon name="done_all" color="positive" size="md" class="q-mr-sm" />
-          <span>Mark ALL tasks as completed?</span>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn
-            flat
-            label="Confirm"
-            color="positive"
-            @click="confirmBulkComplete"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-    <q-dialog v-model="bulkDeleteDialog">
-      <q-card>
-        <q-card-section class="row items-center">
-          <q-icon name="warning" color="negative" size="md" class="q-mr-sm" />
-          <span>Delete ALL tasks permanently?</span>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn
-            flat
-            label="Delete"
-            color="negative"
-            @click="confirmBulkDelete"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-    <q-dialog v-model="newTask">
-      <q-card style="min-width: 400px">
-        <q-card-section>
-          <div class="text-h6">Add Task</div>
-        </q-card-section>
-        <q-card-section>
-          <TaskForm @save="createTask" @cancel="newTask = false" />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <ConfirmBulkDialog
+      v-model="bulkCompleteDialog"
+      title="Mark ALL tasks as completed?"
+      message="This will mark every task as completed. Are you sure?"
+      confirm-label="Confirm"
+      cancel-label="Cancel"
+      color="positive"
+      icon="done_all"
+      @confirm="confirmBulkComplete"
+    />
+
+    <ConfirmBulkDialog
+      v-model="bulkDeleteDialog"
+      title="Delete ALL tasks permanently?"
+      message="This action cannot be undone. Continue?"
+      confirm-label="Delete"
+      cancel-label="Cancel"
+      color="negative"
+      icon="warning"
+      @confirm="confirmBulkDelete"
+    />
     <div class="row q-col-gutter-md q-mt-md">
       <div class="col-12">
         <PieChart />
@@ -115,19 +82,11 @@
       </div>
     </div>
 
-    <q-dialog v-model="newTask">
-      <q-card style="min-width: 400px">
-        <q-card-section>
-          <div class="text-h6">Add Task</div>
-        </q-card-section>
-        <q-card-section>
-          <TaskForm @save="createTask" @cancel="newTask = false" />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <q-card-section>
+      <NewTaskDialog v-model="newTask" @create-task="createTask" />
+    </q-card-section>
   </q-page>
 </template>
-
 
 <script lang="ts">
 import { defineComponent, computed, ref, onMounted, defineAsyncComponent } from 'vue';
@@ -135,18 +94,20 @@ import { useTaskStore } from 'stores/task-store';
 import PriorityChart from 'components/charts/PriorityChart.vue';
 import DashboardWidget from 'components/DashboardWidget.vue';
 import TaskList from 'components/TaskList.vue';
-import TaskForm from 'components/TaskForm.vue';
 import type { Task } from 'src/types/task';
 import { taskService } from 'src/services/task-service';
+import NewTaskDialog from 'components/TaskDialog.vue';
+import ConfirmBulkDialog from 'components/ConfirmBulkDialog.vue';
 
 export default defineComponent({
   name: 'IndexPage',
   components: {
+    NewTaskDialog,
     PieChart: defineAsyncComponent(() => import('components/charts/PieChart.vue')),
     PriorityChart,
     DashboardWidget,
     TaskList,
-    TaskForm,
+    ConfirmBulkDialog
   },
   setup() {
     const taskStore = useTaskStore();
