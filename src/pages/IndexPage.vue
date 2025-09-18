@@ -5,172 +5,154 @@
       <div class="text-subtitle2 text-grey">Overview of your tasks and productivity insights</div>
     </div>
 
-    <div class="row q-col-gutter-md">
-      <div class="col">
-        <q-card class="q-mb-lg relative-position">
-          <q-inner-loading
-            :showing="loading"
-            class="absolute-full flex flex-center bg-white/70"
-            style="z-index: 10"
-          >
-            <q-spinner color="primary" size="40px" />
-          </q-inner-loading>
-
-          <q-card-section>
-            <div class="row q-col-gutter-md">
-              <div class="col-3" v-for="stat in statsData" :key="stat.label">
-                <q-card bordered flat>
-                  <q-card-section>
-                    <div class="row items-center justify-between">
-                      <div>
-                        <div class="text-caption text-grey-7">{{ stat.label }}</div>
-                        <div :class="stat.color + ' text-h6 text-weight-bold'">
-                          {{ stat.value }}
-                        </div>
-                      </div>
-                      <q-avatar :color="stat.bg" size="40px">
-                        <q-icon :name="stat.icon" color="white" />
-                      </q-avatar>
-                    </div>
-                  </q-card-section>
-                </q-card>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-
-        <q-card class="q-mb-lg" bordered flat>
-          <q-card-section>
-            <div class="text-subtitle1 text-weight-bold">Quick Actions</div>
-          </q-card-section>
-          <q-separator />
-          <q-card-actions align="around">
-            <q-btn color="primary" icon="add" label="Add Task" @click="newTask = true" />
-            <q-btn
-              color="positive"
-              icon="done_all"
-              label="Bulk Complete"
-              @click="confirmBulkComplete"
-            />
-            <q-btn
-              color="negative"
-              icon="delete_sweep"
-              label="Bulk Delete"
-              @click="confirmBulkDelete"
-            />
-            <q-btn
-              color="grey-8"
-              icon="filter_alt"
-              label="Filter & Search"
-              @click="toggleFilters"
-            />
-          </q-card-actions>
-        </q-card>
-      </div>
-
-      <div class="col-12">
-        <PieChart />
-      </div>
-
-      <div class="col-12 col-md-4">
-        <q-card class="relative-position">
-          <q-inner-loading
-            :showing="loading"
-            class="absolute-full flex flex-center bg-white/70"
-            style="z-index: 10"
-          >
-            <q-spinner color="primary" size="40px" />
-          </q-inner-loading>
-
-          <q-card-section>
-            <div class="text-h6">Tasks by Priority</div>
-          </q-card-section>
-          <q-separator />
-          <q-card-section>
-            <PriorityChart :data="priorityData" :total="totalTasks" />
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-md-4">
-        <q-card class="relative-position">
-          <q-inner-loading
-            :showing="loading"
-            class="absolute-full flex flex-center bg-white/70"
-            style="z-index: 10"
-          >
-            <q-spinner color="primary" size="40px" />
-          </q-inner-loading>
-
-          <q-card-section>
-            <div class="text-h6">Task Statistics</div>
-          </q-card-section>
-          <q-separator />
-          <q-card-section>
-            <div class="text-subtitle1">Total: {{ totalTasks }}</div>
-            <div class="text-positive">Completed: {{ completedTasks }}</div>
-            <div class="text-warning">Pending: {{ pendingTasks }}</div>
-            <div class="text-negative">Overdue: {{ overdueTasks }}</div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-md-4">
-        <q-card class="relative-position">
-          <q-inner-loading
-            :showing="loading"
-            class="absolute-full flex flex-center bg-white/70"
-            style="z-index: 10"
-          >
-            <q-spinner color="primary" size="40px" />
-          </q-inner-loading>
-
-          <q-card-section>
-            <div class="text-h6">Recent Activity</div>
-          </q-card-section>
-          <q-separator />
-          <q-list bordered>
-            <q-item v-for="task in recentTasks" :key="task.id">
-              <q-item-section>
-                <q-item-label>{{ task.title }}</q-item-label>
-                <q-item-label caption> Updated: {{ task.updated_at }} </q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-badge
-                  :color="task.is_complete ? 'green' : 'grey'"
-                  :label="task.is_complete ? 'Complete' : 'Pending'"
-                />
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card>
+    <div class="row q-col-gutter-md q-mb-md">
+      <div class="col-3" v-for="stat in statsData" :key="stat.label">
+        <DashboardWidget :title="stat.label" :loading="loading">
+          <div class="row items-center justify-between">
+            <div :class="stat.color + ' text-h6 text-weight-bold'">{{ stat.value }}</div>
+            <q-avatar :color="stat.bg" size="40px">
+              <q-icon :name="stat.icon" color="white" />
+            </q-avatar>
+          </div>
+        </DashboardWidget>
       </div>
     </div>
 
-    <NewTaskDialog v-model="newTask" @create-task="createTask" />
+    <DashboardWidget title="Quick Actions">
+      <q-card-actions align="around">
+        <q-btn
+          color="primary"
+          icon="add"
+          label="Add Task"
+          @click="newTask = true"
+        />
+        <q-btn
+          color="positive"
+          icon="done_all"
+          label="Bulk Complete"
+          @click="bulkCompleteDialog = true"
+        />
+        <q-btn
+          color="negative"
+          icon="delete_sweep"
+          label="Bulk Delete"
+          @click="bulkDeleteDialog = true"
+        />
+        <q-btn
+          color="grey-8"
+          icon="filter_alt"
+          label="Filter & Search"
+          @click="toggleFilters"
+        />
+      </q-card-actions>
+    </DashboardWidget>
+    <q-dialog v-model="bulkCompleteDialog">
+      <q-card>
+        <q-card-section class="row items-center">
+          <q-icon name="done_all" color="positive" size="md" class="q-mr-sm" />
+          <span>Mark ALL tasks as completed?</span>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn
+            flat
+            label="Confirm"
+            color="positive"
+            @click="confirmBulkComplete"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <q-dialog v-model="bulkDeleteDialog">
+      <q-card>
+        <q-card-section class="row items-center">
+          <q-icon name="warning" color="negative" size="md" class="q-mr-sm" />
+          <span>Delete ALL tasks permanently?</span>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn
+            flat
+            label="Delete"
+            color="negative"
+            @click="confirmBulkDelete"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <q-dialog v-model="newTask">
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <div class="text-h6">Add Task</div>
+        </q-card-section>
+        <q-card-section>
+          <TaskForm @save="createTask" @cancel="newTask = false" />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+    <div class="row q-col-gutter-md q-mt-md">
+      <div class="col-12">
+        <PieChart />
+      </div>
+      <div class="col-12 col-md-4">
+        <DashboardWidget title="Tasks by Priority" :loading="loading">
+          <PriorityChart :data="priorityData" :total="totalTasks" />
+        </DashboardWidget>
+      </div>
+      <div class="col-12 col-md-4">
+        <DashboardWidget title="Task Statistics" :loading="loading">
+          <div class="text-subtitle1">Total: {{ totalTasks }}</div>
+          <div class="text-positive">Completed: {{ completedTasks }}</div>
+          <div class="text-warning">Pending: {{ pendingTasks }}</div>
+          <div class="text-negative">Overdue: {{ overdueTasks }}</div>
+        </DashboardWidget>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <DashboardWidget title="Recent Activity" :loading="loading">
+          <TaskList :tasks="recentTasks" />
+        </DashboardWidget>
+      </div>
+    </div>
+
+    <q-dialog v-model="newTask">
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <div class="text-h6">Add Task</div>
+        </q-card-section>
+        <q-card-section>
+          <TaskForm @save="createTask" @cancel="newTask = false" />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
+
 
 <script lang="ts">
 import { defineComponent, computed, ref, onMounted, defineAsyncComponent } from 'vue';
 import { useTaskStore } from 'stores/task-store';
-import TaskDialog from 'components/TaskDialog.vue';
 import PriorityChart from 'components/charts/PriorityChart.vue';
+import DashboardWidget from 'components/DashboardWidget.vue';
+import TaskList from 'components/TaskList.vue';
+import TaskForm from 'components/TaskForm.vue';
 import type { Task } from 'src/types/task';
 import { taskService } from 'src/services/task-service';
-import { useQuasar } from 'quasar';
 
 export default defineComponent({
   name: 'IndexPage',
   components: {
-    NewTaskDialog: TaskDialog,
     PieChart: defineAsyncComponent(() => import('components/charts/PieChart.vue')),
     PriorityChart,
+    DashboardWidget,
+    TaskList,
+    TaskForm,
   },
   setup() {
-    const $q = useQuasar();
     const taskStore = useTaskStore();
     const newTask = ref(false);
+    const bulkCompleteDialog = ref(false);
+    const bulkDeleteDialog = ref(false);
 
     const loading = ref(true);
 
@@ -263,27 +245,13 @@ export default defineComponent({
     }
 
     function confirmBulkComplete() {
-      $q.dialog({
-        title: 'Confirm',
-        message: 'Mark ALL tasks as completed?',
-        cancel: true,
-        persistent: true
-      }).onOk(() => {
-        bulkComplete();
-        $q.notify({ type: 'positive', message: 'All tasks marked as completed!' });
-      });
+      bulkComplete();
+      bulkCompleteDialog.value = false;
     }
 
     function confirmBulkDelete() {
-      $q.dialog({
-        title: 'Confirm',
-        message: 'Delete ALL tasks permanently?',
-        cancel: true,
-        persistent: true
-      }).onOk(() => {
-        bulkDelete();
-        $q.notify({ type: 'negative', message: 'All tasks deleted!' });
-      });
+      bulkDelete();
+      bulkDeleteDialog.value = false;
     }
 
     function toggleFilters() {
@@ -303,7 +271,9 @@ export default defineComponent({
       statsData,
       loading,
       confirmBulkDelete,
-      confirmBulkComplete
+      confirmBulkComplete,
+      bulkCompleteDialog,
+      bulkDeleteDialog,
     };
   },
 });
