@@ -8,10 +8,27 @@
       flat
       bordered
       @row-click="goToDetail"
+      :filter="filter"
     >
       <template v-slot:top-right>
         <q-btn color="primary" label="Add Task" @click="newTask = true" />
         <NewTaskDialog v-model="newTask" @create-task="createTask" />
+        <q-input
+          class="q-ml-sm"
+          v-if="show_filter"
+          filled
+          borderless
+          dense
+          debounce="300"
+          v-model="filter"
+          placeholder="Search"
+        >
+          <template v-slot:append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+
+        <q-btn class="q-ml-sm" icon="filter_list" @click="show_filter = !show_filter" flat />
       </template>
       <template v-slot:body-cell-is_complete="props">
         <q-td :props="props">
@@ -42,11 +59,7 @@
         </q-td>
       </template>
     </q-table>
-    <NewTaskDialog
-      v-model="editDialog"
-      :initial-task="selectedTask"
-      @update-task="updateTask"
-    />
+    <NewTaskDialog v-model="editDialog" :initial-task="selectedTask" @update-task="updateTask" />
 
     <q-dialog v-model="deleteDialog">
       <q-card>
@@ -66,9 +79,9 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue';
-import type { QTableColumn } from 'quasar'
-import { useRouter } from 'vue-router'
-import TaskDialog from 'components/TaskDialog.vue'
+import type { QTableColumn } from 'quasar';
+import { useRouter } from 'vue-router';
+import TaskDialog from 'components/TaskDialog.vue';
 import { useTaskStore } from 'stores/task-store';
 import type { Task } from 'src/types/task';
 
@@ -76,14 +89,25 @@ export default defineComponent({
   name: 'TaskPage',
   components: { NewTaskDialog: TaskDialog },
   setup() {
-    const router = useRouter()
-    const taskStore = useTaskStore()
+    const router = useRouter();
+    const taskStore = useTaskStore();
+
+    const filter = ref('');
+    const show_filter = ref(false);
 
     onMounted(() => {
-      taskStore.loadFromStorage()
-    })
+      taskStore.loadFromStorage();
+    });
 
-    const tasks = computed(() => taskStore.tasks)
+    const tasks = computed(() => {
+      if (!filter.value) return taskStore.tasks;
+      return taskStore.tasks.filter(
+        (t) =>
+          t.title.toLowerCase().includes(filter.value.toLowerCase()) ||
+          t.desc.toLowerCase().includes(filter.value.toLowerCase()) ||
+          t.assignee.toLowerCase().includes(filter.value.toLowerCase()),
+      );
+    });
 
     const columns: QTableColumn[] = [
       { name: 'title', label: 'Title', field: 'title', align: 'left' },
@@ -93,50 +117,52 @@ export default defineComponent({
       { name: 'due_date', label: 'Due Date', field: 'due_date', align: 'center' },
       { name: 'is_complete', label: 'Status', field: 'is_complete', align: 'center' },
       { name: 'actions', label: 'Actions', field: 'id', align: 'center' },
-    ]
+    ];
 
-    const newTask = ref(false)
-    const editDialog = ref(false)
-    const deleteDialog = ref(false)
-    const selectedTask = ref<Task | null>(null)
+    const newTask = ref(false);
+    const editDialog = ref(false);
+    const deleteDialog = ref(false);
+    const selectedTask = ref<Task | null>(null);
 
     function createTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
-      taskStore.addTask(payload)
-      console.log('All tasks in store:', taskStore.tasks)
+      taskStore.addTask(payload);
+      console.log('All tasks in store:', taskStore.tasks);
     }
 
     function openEditDialog(task: Task) {
-      selectedTask.value = { ...task }
-      editDialog.value = true
+      selectedTask.value = { ...task };
+      editDialog.value = true;
     }
 
     function updateTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
       if (selectedTask.value) {
-        taskStore.editTask(selectedTask.value.id, payload)
-        editDialog.value = false
+        taskStore.editTask(selectedTask.value.id, payload);
+        editDialog.value = false;
       }
     }
 
     function openDeleteConfirm(task: Task) {
-      selectedTask.value = task
-      deleteDialog.value = true
+      selectedTask.value = task;
+      deleteDialog.value = true;
     }
 
     function confirmDelete() {
       if (selectedTask.value) {
-        taskStore.deleteTask(selectedTask.value.id)
-        deleteDialog.value = false
-      }
-    }
-    async function goToDetail(_evt: unknown, row: Task) {
-      try {
-        await router.push({ name: 'task-detail', params: { id: row.id } })
-      } catch (err) {
-        console.error(err)
+        taskStore.deleteTask(selectedTask.value.id);
+        deleteDialog.value = false;
       }
     }
 
-    return {     tasks,
+    async function goToDetail(_evt: unknown, row: Task) {
+      try {
+        await router.push({ name: 'task-detail', params: { id: row.id } });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    return {
+      tasks,
       columns,
       newTask,
       editDialog,
@@ -147,8 +173,10 @@ export default defineComponent({
       updateTask,
       openDeleteConfirm,
       confirmDelete,
-      goToDetail
-    }
+      goToDetail,
+      filter,
+      show_filter,
+    };
   },
-})
+});
 </script>
