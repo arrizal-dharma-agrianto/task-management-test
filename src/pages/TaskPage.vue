@@ -46,49 +46,35 @@
 
       <template v-slot:body-cell-is_complete="props">
         <q-td :props="props">
-          <q-badge
-            :color="props.row.is_complete ? 'green' : 'grey'"
-            :label="props.row.is_complete ? 'Complete' : 'Incomplete'"
-          />
+          <TaskBadge :status="props.row.is_complete" />
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-priority="props">
+        <q-td :props="props">
+          <PriorityBadge :priority="props.row.priority" />
         </q-td>
       </template>
 
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <q-btn
-            dense
-            flat
-            round
-            color="primary"
-            icon="edit"
-            @click.stop="openEditDialog(props.row)"
-          />
-          <q-btn
-            dense
-            flat
-            round
-            color="primary"
-            icon="delete"
-            @click.stop="openDeleteConfirm(props.row)"
-          />
+          <TaskActions :row="props.row" @edit="openEditDialog" @delete="openDeleteConfirm" />
         </q-td>
       </template>
     </q-table>
 
     <NewTaskDialog v-model="editDialog" :initial-task="selectedTask" @update-task="updateTask" />
 
-    <q-dialog v-model="deleteDialog">
-      <q-card>
-        <q-card-section class="row items-center">
-          <q-icon name="warning" color="warning" size="md" class="q-mr-sm" />
-          <span>Are you sure you want to delete this task?</span>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Delete" color="negative" @click="confirmDelete" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    <ConfirmDialog
+      v-model="deleteDialog"
+      title="Delete Task"
+      message="Are you sure you want to delete this task?"
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      color="negative"
+      icon="warning"
+      @confirm="confirmDelete"
+    />
   </q-page>
 </template>
 
@@ -99,11 +85,22 @@ import { useRouter } from 'vue-router';
 import TaskDialog from 'components/TaskDialog.vue';
 import { useTaskStore } from 'stores/task-store';
 import type { Task } from 'src/types/task';
-import TaskFilterBar from 'components/TaskFilterBar.vue'
+import TaskFilterBar from 'components/TaskFilterBar.vue';
+import TaskBadge from 'components/TaskBadge.vue';
+import PriorityBadge from 'components/PriorityBadge.vue';
+import TaskActions from 'components/TaskActions.vue';
+import ConfirmDialog from 'components/ConfirmDialog.vue';
 
 export default defineComponent({
   name: 'TaskPage',
-  components: { NewTaskDialog: TaskDialog, TaskFilterBar  },
+  components: {
+    NewTaskDialog: TaskDialog,
+    TaskFilterBar,
+    TaskBadge,
+    ConfirmDialog,
+    PriorityBadge,
+    TaskActions,
+  },
   setup() {
     const router = useRouter();
     const taskStore = useTaskStore();
@@ -119,13 +116,13 @@ export default defineComponent({
 
     onMounted(async () => {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 500));
         taskStore.loadFromStorage();
       } catch (err) {
         error.value = 'Failed to load tasks. Please try again.';
         console.error(err);
       } finally {
-          loading.value = false
+        loading.value = false;
       }
     });
 
