@@ -2,11 +2,22 @@
   <q-page padding>
     <div class="q-mb-lg">
       <div class="text-h4 text-weight-bold">Task Management Dashboard</div>
-      <div class="text-subtitle2 text-grey">Overview of your tasks and productivity insights</div>
+      <div class="text-subtitle2 text-grey">
+        Overview of your tasks and productivity insights
+      </div>
     </div>
+
     <div class="row q-col-gutter-md">
       <div class="col">
-        <q-card class="q-mb-lg">
+        <q-card class="q-mb-lg relative-position">
+          <q-inner-loading
+            :showing="loading"
+            class="absolute-full flex flex-center bg-white/70"
+            style="z-index: 10"
+          >
+            <q-spinner color="primary" size="40px" />
+          </q-inner-loading>
+
           <q-card-section>
             <div class="row q-col-gutter-md">
               <div
@@ -40,9 +51,24 @@
           </q-card-section>
           <q-separator />
           <q-card-actions align="around">
-            <q-btn color="primary" icon="add" label="Add Task" @click="newTask = true" />
-            <q-btn color="positive" icon="done_all" label="Bulk Complete" @click="bulkComplete" />
-            <q-btn color="negative" icon="delete_sweep" label="Bulk Delete" @click="bulkDelete" />
+            <q-btn
+              color="primary"
+              icon="add"
+              label="Add Task"
+              @click="newTask = true"
+            />
+            <q-btn
+              color="positive"
+              icon="done_all"
+              label="Bulk Complete"
+              @click="bulkComplete"
+            />
+            <q-btn
+              color="negative"
+              icon="delete_sweep"
+              label="Bulk Delete"
+              @click="bulkDelete"
+            />
             <q-btn
               color="grey-8"
               icon="filter_alt"
@@ -58,7 +84,15 @@
       </div>
 
       <div class="col-12 col-md-4">
-        <q-card>
+        <q-card class="relative-position">
+          <q-inner-loading
+            :showing="loading"
+            class="absolute-full flex flex-center bg-white/70"
+            style="z-index: 10"
+          >
+            <q-spinner color="primary" size="40px" />
+          </q-inner-loading>
+
           <q-card-section>
             <div class="text-h6">Tasks by Priority</div>
           </q-card-section>
@@ -70,7 +104,15 @@
       </div>
 
       <div class="col-12 col-md-4">
-        <q-card>
+        <q-card class="relative-position">
+          <q-inner-loading
+            :showing="loading"
+            class="absolute-full flex flex-center bg-white/70"
+            style="z-index: 10"
+          >
+            <q-spinner color="primary" size="40px" />
+          </q-inner-loading>
+
           <q-card-section>
             <div class="text-h6">Task Statistics</div>
           </q-card-section>
@@ -85,7 +127,15 @@
       </div>
 
       <div class="col-12 col-md-4">
-        <q-card>
+        <q-card class="relative-position">
+          <q-inner-loading
+            :showing="loading"
+            class="absolute-full flex flex-center bg-white/70"
+            style="z-index: 10"
+          >
+            <q-spinner color="primary" size="40px" />
+          </q-inner-loading>
+
           <q-card-section>
             <div class="text-h6">Recent Activity</div>
           </q-card-section>
@@ -94,7 +144,9 @@
             <q-item v-for="task in recentTasks" :key="task.id">
               <q-item-section>
                 <q-item-label>{{ task.title }}</q-item-label>
-                <q-item-label caption> Updated: {{ task.updated_at }}</q-item-label>
+                <q-item-label caption>
+                  Updated: {{ task.updated_at }}
+                </q-item-label>
               </q-item-section>
               <q-item-section side>
                 <q-badge
@@ -130,9 +182,17 @@ export default defineComponent({
     const taskStore = useTaskStore();
     const newTask = ref(false);
 
-    onMounted(() => {
-      taskStore.loadFromStorage();
-    });
+    const loading = ref(true)
+
+    onMounted(async () => {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+        taskStore.loadFromStorage()
+      } finally {
+        loading.value = false
+      }
+    })
+
     const statsData = computed(() => [
       // {
       //   label: 'Total',
@@ -228,6 +288,7 @@ export default defineComponent({
       bulkComplete,
       toggleFilters,
       statsData,
+      loading
     };
   },
 });
