@@ -70,7 +70,8 @@
 import { defineComponent, ref, watch } from 'vue';
 import type { Task } from 'src/types/task';
 import type { PropType } from 'vue';
-import { useQuasar } from 'quasar';
+// import { useQuasar } from 'quasar';
+import { useNotify } from 'src/composables/useNotify';
 
 export default defineComponent({
   name: 'NewTaskDialog',
@@ -83,7 +84,7 @@ export default defineComponent({
   },
   emits: ['update:modelValue', 'create-task', 'update-task'],
   setup(props, { emit }) {
-    const $q = useQuasar();
+    const { success, error } = useNotify();
     const formRef = ref();
 
     const title = ref('');
@@ -134,14 +135,12 @@ export default defineComponent({
     async function confirm() {
       const valid = await formRef.value.validate();
       if (!valid) {
-        $q.notify({ type: 'negative', message: 'Please fill all required fields' });
+        error('Please fill all required fields');
         return;
       }
 
       loading.value = true;
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
         const payload = {
           title: title.value,
           desc: desc.value,
@@ -153,15 +152,16 @@ export default defineComponent({
 
         if (props.initialTask) {
           emit('update-task', payload);
+          success(`Task "${payload.title}" updated successfully! You can now start working on it!`);
         } else {
           emit('create-task', payload);
+          success(`Task "${payload.title}" created successfully! You can now start working on it!`);
         }
 
         close();
         resetForm();
-      } catch (err) {
-        console.log(err);
-        $q.notify({ type: 'negative', message: 'Failed to save task'});
+      } catch {
+        error('Failed to save task');
       } finally {
         loading.value = false;
       }

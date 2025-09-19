@@ -126,7 +126,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue';
-import type { QTableColumn } from 'quasar';
+import type {  QTableColumn } from 'quasar';
 import { useRouter } from 'vue-router';
 import TaskDialog from 'components/TaskDialog.vue';
 import { useTaskStore } from 'stores/task-store';
@@ -136,6 +136,7 @@ import TaskBadge from 'components/TaskBadge.vue';
 import PriorityBadge from 'components/PriorityBadge.vue';
 import TaskActions from 'components/TaskActions.vue';
 import ConfirmDialog from 'components/ConfirmDialog.vue';
+import { useNotify } from 'src/composables/useNotify';
 
 export default defineComponent({
   name: 'TaskPage',
@@ -148,6 +149,7 @@ export default defineComponent({
     TaskActions,
   },
   setup() {
+    const { success, error } = useNotify();
     const router = useRouter();
     const taskStore = useTaskStore();
 
@@ -159,15 +161,14 @@ export default defineComponent({
     const bulkDeleteDialog = ref(false);
 
     const loading = ref(true);
-    const error = ref<string | null>(null);
+    const err = ref<string | null>(null);
 
     onMounted(async () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 500));
         taskStore.loadFromStorage();
-      } catch (err) {
-        error.value = 'Failed to load tasks. Please try again.';
-        console.error(err);
+      } catch {
+        err.value = 'Failed to load tasks. Please try again.';
       } finally {
         loading.value = false;
       }
@@ -231,15 +232,17 @@ export default defineComponent({
       if (selectedTask.value) {
         taskStore.deleteTask(selectedTask.value.id);
         deleteDialog.value = false;
+
+        success(`Task "${selectedTask.value.title}" deleted successfully!`);
       }
     }
 
     async function goToDetail(_evt: unknown, row: Task) {
       try {
         await router.push({ name: 'task-detail', params: { id: row.id } });
-      } catch (err) {
-        error.value = 'Failed to navigate to task detail.';
-        console.error(err);
+      } catch {
+        err.value = 'Failed to navigate to task detail.';
+        error('Failed to navigate to task detail.');
       }
     }
 
@@ -258,6 +261,9 @@ export default defineComponent({
       selected.value.forEach((task) => {
         taskStore.deleteTask(task.id);
       });
+
+      success(`${selected.value.length} task deleted!`);
+
       selected.value = [];
       bulkDeleteDialog.value = false;
     }

@@ -276,8 +276,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<!-- - Ensure reusability of components (TaskCard, TaskForm, TaskList, DashboardWidget)-->
-<!-- - Add service abstraction (future API-ready layer)-->
-<!-- - Write documentation (README: setup + architecture + decisions)-->
-<!-- - Add time tracking log (setup, core, UI/UX, polish, docs)-->
