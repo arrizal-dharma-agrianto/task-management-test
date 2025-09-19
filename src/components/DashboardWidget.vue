@@ -1,5 +1,5 @@
 <template>
-  <q-card class="relative-position">
+  <q-card class="relative-position rounded-widget">
     <q-inner-loading
       :showing="loading"
       class="absolute-full flex flex-center bg-white/70"
@@ -21,3 +21,10 @@
 <script lang="ts" setup>
 defineProps<{ title: string; loading?: boolean }>();
 </script>
+
+<style>
+.rounded-widget {
+  border-radius: 12px;
+  overflow: hidden;
+}
+</style>

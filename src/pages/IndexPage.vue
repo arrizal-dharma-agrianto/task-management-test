@@ -4,9 +4,10 @@
       <div class="text-h4 text-weight-bold">Task Management Dashboard</div>
       <div class="text-subtitle2 text-grey">Overview of your tasks and productivity insights</div>
     </div>
-    <q-scroll-area style="height: 140px;" class="q-mb-md">
+    <q-scroll-area style="height: 160px;" class="q-mb-md">
       <div
         class="row no-wrap q-col-gutter-md"
+        style="padding-right: 1px; padding-left: 1px; padding-top: 1px"
         role="region"
         aria-label="Task statistics summary"
       >
@@ -19,7 +20,7 @@
           :aria-label="`${stat.label}: ${stat.value}`"
           style="min-width: 220px;"
         >
-          <DashboardWidget :title="stat.label" :loading="loading">
+          <DashboardWidget :title="stat.label" :loading="loading" >
             <div class="row items-center justify-between">
               <div :class="stat.color + ' text-h6 text-weight-bold'">
                 {{ stat.value }}
@@ -67,10 +68,10 @@
             <q-btn
               color="primary"
               icon="add"
-              label="Add Task"
               @click="newTask = true"
               aria-label="Add new task"
               dense
+              class="rounded-button"
             />
           </div>
           <div v-if="recentActivities.length" class="activity-scroll">
@@ -260,5 +261,8 @@ export default defineComponent({
   max-height: 505px;
   overflow-y: auto;
   padding-left: 8px;
+}
+.rounded-button{
+  border-radius: 100%;
 }
 </style>
