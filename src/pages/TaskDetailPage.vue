@@ -40,43 +40,44 @@
       </div>
 
       <!-- Main content -->
-      <q-card class="task-info-card q-pa-lg shadow-2 rounded-borders" role="article" :aria-label="`Task details for ${task.title}`">
+      <q-card
+        class="task-info-card q-pa-lg shadow-2 rounded-borders"
+        role="article"
+        :aria-label="`Task details for ${task.title}`"
+      >
         <div class="text-h5 text-weight-bold q-mb-lg">Task Information</div>
         <div class="row q-col-gutter-md">
           <!-- Left side -->
           <div class="col-7">
             <!-- Title -->
             <div class="q-mb-md" role="group" aria-label="Task title">
-              <div class="text-caption text-grey">Title</div>
+              <div class="text-caption text-grey text-weight-bold">Title</div>
               <div class="text-body1 text-weight-medium">{{ task.title }}</div>
             </div>
 
             <!-- Assignee and Due Date -->
             <div class="row q-col-gutter-md q-mb-md">
               <div class="col-6" role="group" aria-label="Task assignee">
-                <div class="text-caption text-grey">Assign</div>
-                <div class="text-body2">{{ task.assignee }}</div>
+                <div class="text-caption text-grey text-weight-bold">Assign</div>
+                <div class="text-body2"><q-icon name="person" size="14px" class="q-mr-xs text-grey-7" />{{ task.assignee }}</div>
               </div>
               <div class="col-6" role="group" aria-label="Task due date">
-                <div class="text-caption text-grey">Due Date</div>
-                <div class="text-body2">{{ formatDate(task.due_date) }}</div>
+                <div class="text-caption text-grey text-weight-bold">Due Date</div>
+                <div class="text-body2"><q-icon name="event" size="14px" class="q-ml-md q-mr-xs text-grey-7" />{{ formatDate(task.due_date) }}</div>
               </div>
             </div>
 
-            <!-- Description -->
-            <div role="group" aria-label="Task description">
-              <div class="text-caption text-grey">Description</div>
-              <div class="text-body2">{{ task.desc }}</div>
-            </div>
-          </div>
-
-          <!-- Right side -->
-          <div class="col-5">
             <div class="row q-col-gutter-md q-mb-md">
               <div class="col-6" role="group" aria-label="Task priority">
-                <div class="text-caption text-grey">Priority</div>
+                <div class="text-caption text-grey text-weight-bold">Priority</div>
                 <q-badge
-                  :color="task.priority === 'high' ? 'red' : task.priority === 'medium' ? 'orange' : 'green'"
+                  :color="
+                    task.priority === 'high'
+                      ? 'red'
+                      : task.priority === 'medium'
+                        ? 'orange'
+                        : 'green'
+                  "
                   outline
                   class="q-mt-xs text-bold row items-center q-px-sm q-py-xs"
                   :aria-label="`Priority: ${task.priority}`"
@@ -91,7 +92,7 @@
               </div>
 
               <div class="col-6" role="group" aria-label="Task status">
-                <div class="text-caption text-grey">Status</div>
+                <div class="text-caption text-grey text-weight-bold">Status</div>
                 <q-badge
                   :color="task.is_complete ? 'green' : 'grey'"
                   outline
@@ -108,12 +109,55 @@
               </div>
             </div>
 
+            <!-- Description -->
+            <div role="group" aria-label="Task description">
+              <div class="text-caption text-grey text-weight-bold">Description</div>
+              <div class="text-body2">{{ task.desc }}</div>
+            </div>
+          </div>
+
+          <!-- Right side -->
+          <div class="col-5">
             <!-- Extra content (optional placeholder) -->
             <div class="additional-content">
-              <q-card flat bordered class="q-pa-md" style="min-height: 200px">
-                <div class="text-caption text-grey-6 text-center q-mt-lg">
-                  Additional Information
+              <q-card flat bordered class="q-pa-md bg-grey-11" style="min-height: 200px">
+                <div class="text-caption text-grey text-weight-bold">Recent Activity</div>
+                <div v-if="recentActivities.length" class="column">
+                  <q-card
+                    v-for="(activity, i) in recentActivities"
+                    :key="i"
+                    flat
+                    bordered
+                    class="q-mb-sm q-pa-sm flex items-start"
+                  >
+                    <q-icon
+                      :name="
+                        activity.action === 'Completed'
+                          ? 'check_circle'
+                          : activity.action === 'Overdue'
+                            ? 'error'
+                            : activity.action === 'Created'
+                              ? 'add_circle'
+                              : 'schedule'
+                      "
+                      :color="activity.color"
+                      size="sm"
+                      class="q-mt-xs"
+                    />
+
+                    <div class="col q-ml-md">
+                      <div class="text-body2">
+                        <span class="text-weight-bold">{{ activity.desc }}</span>
+                        was {{ activity.action.toLowerCase() }}
+                      </div>
+                      <div class="text-caption text-grey text-weight-bold">
+                        {{ activity.time }}
+                      </div>
+                    </div>
+                  </q-card>
                 </div>
+
+                <div v-else class="text-grey text-subtitle2">No recent activities</div>
               </q-card>
             </div>
           </div>
@@ -126,22 +170,18 @@
     </div>
   </q-page>
 
-  <NewTaskDialog
-      v-model="editDialog"
-      :initial-task="task"
-      @update-task="updateTask"
-    />
+  <NewTaskDialog v-model="editDialog" :initial-task="task" @update-task="updateTask" />
 
   <ConfirmDialog
-      v-model="deleteDialog"
-      title="Delete Task"
-      message="Are you sure you want to delete this task?"
-      confirmLabel="Delete"
-      cancelLabel="Cancel"
-      color="negative"
-      icon="warning"
-      @confirm="confirmDelete"
-    />
+    v-model="deleteDialog"
+    title="Delete Task"
+    message="Are you sure you want to delete this task?"
+    confirmLabel="Delete"
+    cancelLabel="Cancel"
+    color="negative"
+    icon="warning"
+    @confirm="confirmDelete"
+  />
 </template>
 
 <script lang="ts">
@@ -149,15 +189,16 @@ import { useRoute, useRouter } from 'vue-router';
 import { computed, ref } from 'vue';
 import { useTaskStore } from 'stores/task-store';
 import type { Task } from 'src/types/task';
-import { useNotify } from "src/composables/useNotify";
-import ConfirmDialog from "components/ConfirmDialog.vue";
-import NewTaskDialog from "components/TaskDialog.vue";
+import { useNotify } from 'src/composables/useNotify';
+import { date } from 'quasar';
+import ConfirmDialog from 'components/ConfirmDialog.vue';
+import NewTaskDialog from 'components/TaskDialog.vue';
 
 export default {
   name: 'TaskDetailPage',
-   components: {
+  components: {
     ConfirmDialog,
-    NewTaskDialog
+    NewTaskDialog,
   },
   setup() {
     const route = useRoute();
@@ -165,14 +206,40 @@ export default {
     const taskStore = useTaskStore();
     const { success } = useNotify();
 
-
     const deleteDialog = ref(false);
     const editDialog = ref(false);
+    const loading = ref(false);
 
     const taskId = route.params.id as string;
     const task = computed<Task | null>(() => {
       return taskStore.tasks.find((t) => t.id === taskId) ?? null;
     });
+
+    const recentActivities = computed(() =>
+      [...taskStore.tasks]
+        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+        .slice(0, 5)
+        .map((t) => {
+          let action = 'Updated';
+          let color = 'primary';
+          if (!t.is_complete && new Date(t.due_date) < new Date()) {
+            action = 'Overdue';
+            color = 'negative';
+          } else if (t.is_complete) {
+            action = 'Completed';
+            color = 'positive';
+          } else if (t.created_at === t.updated_at) {
+            action = 'Created';
+            color = 'info';
+          }
+          return {
+            action,
+            time: date.formatDate(t.updated_at, 'MMM D, hh:mm A'),
+            desc: t.title,
+            color,
+          };
+        }),
+    );
 
     const formatDate = (date: string) => {
       return new Date(date).toLocaleDateString(undefined, {
@@ -184,19 +251,19 @@ export default {
     };
 
     const markComplete = () => {
-       if (task.value) {
-          taskStore.editTask(task.value.id, { ...task.value, is_complete: true });
-          success(`Task marked as complete!`);
+      if (task.value) {
+        taskStore.editTask(task.value.id, { ...task.value, is_complete: true });
+        success(`Task marked as complete!`);
       }
     };
 
     const editTask = () => {
-       if (task.value) {
+      if (task.value) {
         editDialog.value = true;
       }
     };
 
-    function updateTask(payload: Omit<Task, "id" | "created_at" | "updated_at">) {
+    function updateTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
       if (task.value) {
         taskStore.editTask(task.value.id, payload);
         editDialog.value = false;
@@ -204,16 +271,16 @@ export default {
     }
 
     const deleteTask = () => {
-     deleteDialog.value = true;
+      deleteDialog.value = true;
     };
 
     function confirmDelete() {
       if (task.value) {
-        const taskTitle = task.value.title
+        const taskTitle = task.value.title;
         taskStore.deleteTask(task.value.id);
         deleteDialog.value = false;
         success(`Task "${taskTitle}" deleted successfully!`);
-        void router.push({ name: "task-list"});
+        void router.push({ name: 'task-list' });
       }
     }
 
@@ -221,12 +288,14 @@ export default {
       task,
       deleteDialog,
       editDialog,
+      loading,
+      recentActivities,
       formatDate,
       markComplete,
       editTask,
       deleteTask,
       confirmDelete,
-      updateTask
+      updateTask,
     };
   },
 };
