@@ -286,10 +286,10 @@ export default defineComponent({
     }
 
     function confirmBulkDelete() {
+      success(`${selectedTasks.value.length} tasks deleted!`);
       selectedTasks.value.forEach((task) => {
         taskStore.deleteTask(task.id);
       });
-      success(`${selectedTasks.value.length} tasks deleted!`);
       selectedIds.value = [];
       selectAll.value = false;
       bulkDeleteDialog.value = false;
