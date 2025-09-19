@@ -157,11 +157,3 @@ src/
 | **Documentation**                  | 1h    | README with setup, project goals, and time log. Explained design decisions and folder structure. Noted abstraction strategy for future contributors.                                                                                                                                            |
 
 ---
-
-### ✅ Summary
-
-* Total: **20 hours**
-* Longest phase: **Polish (5h)** → heavy refactor, redesign, and preparing service layer.
-* Core features solid and maintainable, future API migration already supported.
-* Key lesson: **UI design takes longer when your creative sense isn’t cooperating.**
-
