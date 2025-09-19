@@ -93,16 +93,12 @@
               <q-menu auto-close>
                 <q-list style="min-width: 150px">
                   <q-item clickable v-ripple @click="editTask(task)">
-                    <q-item-section avatar>
-                      <q-icon name="edit" color="primary" />
-                    </q-item-section>
-                    <q-item-section>Edit</q-item-section>
+                    <q-icon size="14px" name="edit" color="primary q-mt-sm q-mr-sm" />
+                    <q-item-section class="text-primary">Edit</q-item-section>
                   </q-item>
 
                   <q-item clickable v-ripple @click="askDelete(task)">
-                    <q-item-section avatar>
-                      <q-icon name="delete" color="negative" />
-                    </q-item-section>
+                    <q-icon size="14px" name="delete" color="negative q-mt-sm q-mr-sm" />
                     <q-item-section class="text-negative">Delete</q-item-section>
                   </q-item>
                 </q-list>
