@@ -66,13 +66,6 @@
         </div>
       </template>
 
-      <template v-if="error" v-slot:top>
-        <div class="bg-red-2 text-red-9 q-pa-sm q-mb-sm rounded-borders">
-          <q-icon name="warning" class="q-mr-sm" />
-          {{ error }}
-        </div>
-      </template>
-
       <template v-slot:body-cell-is_complete="props">
         <q-td :props="props" aria-label="Task completion status">
           <TaskBadge :status="props.row.is_complete" />
@@ -288,7 +281,6 @@ export default defineComponent({
       selected,
       markSelected,
       loading,
-      error,
       bulkDeleteDialog,
       openBulkDeleteConfirm,
       confirmBulkDelete,
