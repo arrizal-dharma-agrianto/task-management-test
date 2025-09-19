@@ -60,8 +60,7 @@
         @click="goToDetail(task.id)"
       >
         <div class="row items-center justify-between">
-          <!-- Checkbox + Title -->
-          <div class="row items-start" @click.stop>
+          <div class="row items-start">
             <q-checkbox
               v-model="selectedIds"
               :val="task.id"
@@ -85,11 +84,11 @@
           </div>
 
           <!-- Right: Priority & Status -->
-          <div class="row items-center q-gutter-sm" @click.stop>
+          <div class="row items-center q-gutter-sm " >
             <PriorityBadge :priority="task.priority" />
                 <TaskBadge :status="task.is_complete" />
             <!-- Action Menu -->
-            <q-btn icon="more_vert" flat round dense>
+            <q-btn icon="more_vert" @click.stop flat round dense>
               <q-menu auto-close>
                 <q-list style="min-width: 150px">
                   <q-item clickable v-ripple @click="editTask(task)">
