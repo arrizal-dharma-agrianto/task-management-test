@@ -12,21 +12,49 @@
       selection="multiple"
       v-model:selected="selected"
       :loading="loading"
+      aria-label="Task list table"
+      role="table"
     >
       <template v-slot:top-right>
-        <div v-if="selected.length > 0" class="row items-center q-gutter-sm">
-          <q-btn color="positive" label="Mark Complete" @click="markSelected(true)" />
-          <q-btn color="grey" label="Mark Incomplete" @click="markSelected(false)" />
-          <q-btn color="negative" label="Bulk Delete" @click="openBulkDeleteConfirm" />
+        <div
+          v-if="selected.length > 0"
+          class="row items-center q-gutter-sm"
+          role="toolbar"
+          aria-label="Bulk actions for selected tasks"
+        >
+          <q-btn
+            color="positive"
+            label="Mark Complete"
+            @click="markSelected(true)"
+            aria-label="Mark selected tasks complete"
+          />
+          <q-btn
+            color="grey"
+            label="Mark Incomplete"
+            @click="markSelected(false)"
+            aria-label="Mark selected tasks incomplete"
+          />
+          <q-btn
+            color="negative"
+            label="Bulk Delete"
+            @click="openBulkDeleteConfirm"
+            aria-label="Delete selected tasks"
+          />
         </div>
-        <div v-else class="row items-center">
-          <q-btn color="primary" label="Add Task" @click="newTask = true" />
+        <div v-else class="row items-center" aria-label="Task actions">
+          <q-btn
+            color="primary"
+            label="Add Task"
+            @click="newTask = true"
+            aria-label="Add new task"
+          />
           <NewTaskDialog v-model="newTask" @create-task="createTask" />
 
           <TaskFilterBar
             v-model:search="filter"
             v-model:assignee="assigneeFilter"
             v-model:dueDate="dueDateFilter"
+            aria-label="Task filter bar"
           />
         </div>
       </template>
@@ -46,25 +74,30 @@
       </template>
 
       <template v-slot:body-cell-is_complete="props">
-        <q-td :props="props">
+        <q-td :props="props" aria-label="Task completion status">
           <TaskBadge :status="props.row.is_complete" />
         </q-td>
       </template>
 
       <template v-slot:body-cell-priority="props">
-        <q-td :props="props">
+        <q-td :props="props" aria-label="Task priority">
           <PriorityBadge :priority="props.row.priority" />
         </q-td>
       </template>
 
       <template v-slot:body-cell-actions="props">
-        <q-td :props="props">
+        <q-td :props="props" aria-label="Task actions">
           <TaskActions :row="props.row" @edit="openEditDialog" @delete="openDeleteConfirm" />
         </q-td>
       </template>
     </q-table>
 
-    <NewTaskDialog v-model="editDialog" :initial-task="selectedTask" @update-task="updateTask" />
+    <NewTaskDialog
+      v-model="editDialog"
+      :initial-task="selectedTask"
+      @update-task="updateTask"
+      aria-label="Edit task dialog"
+    />
 
     <ConfirmDialog
       v-model="deleteDialog"
@@ -75,6 +108,7 @@
       color="negative"
       icon="warning"
       @confirm="confirmDelete"
+      aria-label="Delete task confirmation dialog"
     />
     <ConfirmDialog
       v-model="bulkDeleteDialog"
@@ -85,6 +119,7 @@
       color="negative"
       icon="warning"
       @confirm="confirmBulkDelete"
+      aria-label="Bulk delete confirmation dialog"
     />
   </q-page>
 </template>
@@ -214,6 +249,7 @@ export default defineComponent({
       });
       selected.value = [];
     }
+
     function openBulkDeleteConfirm() {
       bulkDeleteDialog.value = true;
     }
@@ -225,6 +261,7 @@ export default defineComponent({
       selected.value = [];
       bulkDeleteDialog.value = false;
     }
+
     return {
       tasks,
       columns,

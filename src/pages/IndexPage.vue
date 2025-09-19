@@ -1,16 +1,23 @@
 <template>
-  <q-page padding>
+  <q-page padding role="main" aria-label="Task management dashboard">
     <div class="q-mb-lg">
       <div class="text-h4 text-weight-bold">Task Management Dashboard</div>
       <div class="text-subtitle2 text-grey">Overview of your tasks and productivity insights</div>
     </div>
 
-    <div class="row q-col-gutter-md q-mb-md">
-      <div class="col-3" v-for="stat in statsData" :key="stat.label">
+    <div class="row q-col-gutter-md q-mb-md" role="region" aria-label="Task statistics summary">
+      <div
+        class="col-3"
+        v-for="stat in statsData"
+        :key="stat.label"
+        tabindex="0"
+        role="group"
+        :aria-label="`${stat.label}: ${stat.value}`"
+      >
         <DashboardWidget :title="stat.label" :loading="loading">
           <div class="row items-center justify-between">
             <div :class="stat.color + ' text-h6 text-weight-bold'">{{ stat.value }}</div>
-            <q-avatar :color="stat.bg" size="40px">
+            <q-avatar :color="stat.bg" size="40px" role="img" :aria-label="stat.label">
               <q-icon :name="stat.icon" color="white" />
             </q-avatar>
           </div>
@@ -19,21 +26,35 @@
     </div>
 
     <DashboardWidget title="Quick Actions">
-      <q-card-actions align="around">
-        <q-btn color="primary" icon="add" label="Add Task" @click="newTask = true" />
+      <q-card-actions align="around" role="toolbar" aria-label="Quick task actions">
+        <q-btn
+          color="primary"
+          icon="add"
+          label="Add Task"
+          @click="newTask = true"
+          aria-label="Add new task"
+        />
         <q-btn
           color="positive"
           icon="done_all"
           label="Bulk Complete"
           @click="bulkCompleteDialog = true"
+          aria-label="Mark all tasks as complete"
         />
         <q-btn
           color="negative"
           icon="delete_sweep"
           label="Bulk Delete"
           @click="bulkDeleteDialog = true"
+          aria-label="Delete all tasks permanently"
         />
-        <q-btn color="grey-8" icon="filter_alt" label="Filter & Search" @click="toggleFilters" />
+        <q-btn
+          color="grey-8"
+          icon="filter_alt"
+          label="Filter & Search"
+          @click="toggleFilters"
+          aria-label="Open filter and search options"
+        />
       </q-card-actions>
     </DashboardWidget>
     <ConfirmBulkDialog
@@ -45,6 +66,7 @@
       color="positive"
       icon="done_all"
       @confirm="confirmBulkComplete"
+      aria-label="Confirm bulk complete dialog"
     />
 
     <ConfirmBulkDialog
@@ -56,18 +78,29 @@
       color="negative"
       icon="warning"
       @confirm="confirmBulkDelete"
+      aria-label="Confirm bulk delete dialog"
     />
     <div class="row q-col-gutter-md q-mt-md">
-      <div class="col-12">
+      <div class="col-12" role="region" aria-label="Task distribution pie chart">
         <PieChart />
       </div>
       <div class="col-12 col-md-4">
-        <DashboardWidget title="Tasks by Priority" :loading="loading">
+        <DashboardWidget
+          title="Tasks by Priority"
+          :loading="loading"
+          role="region"
+          aria-label="Tasks grouped by priority"
+        >
           <PriorityChart :data="priorityData" :total="totalTasks" />
         </DashboardWidget>
       </div>
       <div class="col-12 col-md-4">
-        <DashboardWidget title="Task Statistics" :loading="loading">
+        <DashboardWidget
+          title="Task Statistics"
+          :loading="loading"
+          role="region"
+          aria-label="Detailed task statistics"
+        >
           <div class="text-subtitle1">Total: {{ totalTasks }}</div>
           <div class="text-positive">Completed: {{ completedTasks }}</div>
           <div class="text-warning">Pending: {{ pendingTasks }}</div>
@@ -76,14 +109,19 @@
       </div>
 
       <div class="col-12 col-md-4">
-        <DashboardWidget title="Recent Activity" :loading="loading">
+        <DashboardWidget
+          title="Recent Activity"
+          :loading="loading"
+          role="region"
+          aria-label="Recent task activity"
+        >
           <TaskList :tasks="recentTasks" />
         </DashboardWidget>
       </div>
     </div>
 
     <q-card-section>
-      <NewTaskDialog v-model="newTask" @create-task="createTask" />
+      <NewTaskDialog v-model="newTask" @create-task="createTask" aria-label="Add new task dialog" />
     </q-card-section>
   </q-page>
 </template>
@@ -107,7 +145,7 @@ export default defineComponent({
     PriorityChart,
     DashboardWidget,
     TaskList,
-    ConfirmBulkDialog
+    ConfirmBulkDialog,
   },
   setup() {
     const taskStore = useTaskStore();
