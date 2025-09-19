@@ -3,49 +3,25 @@
     <!-- Header -->
     <div class="row items-center justify-between q-mb-md">
       <div class="row items-center q-mb-md q-ml-md">
-        <q-checkbox
-        v-model="selectAll"
-        @update:model-value="toggleSelectAll"
-      />
-      <div class="text-h6">TASK ({{ tasks.length }})</div>
+        <q-checkbox v-model="selectAll" @update:model-value="toggleSelectAll" />
+        <div class="text-h6">TASK ({{ tasks.length }})</div>
       </div>
-        <div class="row items-center">
-          <q-btn
-              color="primary"
-              label="+ New Task"
-              @click="newTask = true"
-              flat
-              rounded
-          />
-          <TaskFilterBar
-            v-model:search="filter"
-            v-model:assignee="assigneeFilter"
-            v-model:dueDate="dueDateFilter"
-            aria-label="Task filter bar"
-            />
-        </div>
+      <div class="row items-center">
+        <q-btn color="primary" label="+ New Task" @click="newTask = true" flat rounded />
+        <TaskFilterBar
+          v-model:search="filter"
+          v-model:assignee="assigneeFilter"
+          v-model:dueDate="dueDateFilter"
+          aria-label="Task filter bar"
+        />
       </div>
+    </div>
 
     <!-- Bulk Actions -->
-    <div
-      v-if="selectedIds.length > 0"
-      class="row items-center q-gutter-sm q-mb-md"
-    >
-      <q-btn
-        color="positive"
-        label="Mark Complete"
-        @click="markSelected(true)"
-      />
-      <q-btn
-        color="grey"
-        label="Mark Incomplete"
-        @click="markSelected(false)"
-      />
-      <q-btn
-        color="negative"
-        label="Bulk Delete"
-        @click="bulkDeleteDialog = true"
-      />
+    <div v-if="selectedIds.length > 0" class="row items-center q-gutter-sm q-mb-md">
+      <q-btn color="positive" label="Mark Complete" @click="markSelected(true)" />
+      <q-btn color="grey" label="Mark Incomplete" @click="markSelected(false)" />
+      <q-btn color="negative" label="Bulk Delete" @click="bulkDeleteDialog = true" />
     </div>
 
     <!-- Task List -->
@@ -56,37 +32,56 @@
         class="q-pa-md cursor-pointer"
         flat
         bordered
-        style="border-radius: 12px;"
+        style="border-radius: 12px"
         @click="goToDetail(task.id)"
       >
         <div class="row items-center justify-between">
           <div class="row items-start">
-            <q-checkbox
-              v-model="selectedIds"
-              :val="task.id"
-              size="md"
-              class="q-mr-md"
-            />
+            <q-checkbox v-model="selectedIds" :val="task.id" size="md" class="q-mr-md" />
             <div class="row items-start q-gutter-sm justify-between">
               <div>
-                <div style="font-size: 18px;" class="text-subtitle1">{{ task.title }}</div>
-                <div style="font-size: 14px; margin-top: 8px;"    class="text-caption text-negative row items-center">
-                <!-- User -->
-                <q-icon name="person" size="14px" class="q-mr-xs text-red-7" />
-                <span>{{ task.assignee }}</span>
+                <div style="font-size: 18px" class="text-subtitle1">{{ task.title }}</div>
+                <div
+                  style="font-size: 14px; margin-top: 8px"
+                  class="text-caption text-negative row items-center"
+                >
+                  <!-- User -->
+                  <q-icon name="person" size="14px" class="q-mr-xs text-red-7" />
+                  <span>{{ task.assignee }}</span>
 
-                <!-- Due date -->
-                <q-icon name="event" size="14px" class="q-ml-md q-mr-xs text-green-7" />
-                <span class="text-positive">{{ formatDate(task.due_date) }}</span>
-              </div>
+                  <!-- Due date -->
+                  <q-icon
+                    name="event"
+                    size="14px"
+                    class="q-ml-md q-mr-xs"
+                    :class="[
+                      task.is_complete
+                        ? 'text-positive'
+                        : new Date(task.due_date) < new Date()
+                          ? 'text-negative'
+                          : 'text-positive',
+                    ]"
+                  />
+                  <span
+                    :class="[
+                      task.is_complete
+                        ? 'text-positive'
+                        : new Date(task.due_date) < new Date()
+                          ? 'text-negative'
+                          : 'text-positive',
+                    ]"
+                  >
+                    {{ formatDate(task.due_date) }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Right: Priority & Status -->
-          <div class="row items-center q-gutter-sm " >
+          <div class="row items-center q-gutter-sm">
             <PriorityBadge :priority="task.priority" />
-                <TaskBadge :status="task.is_complete" />
+            <TaskBadge :status="task.is_complete" />
             <!-- Action Menu -->
             <q-btn icon="more_vert" @click.stop flat round dense>
               <q-menu auto-close>
@@ -128,11 +123,7 @@
 
     <!-- Dialogs -->
     <NewTaskDialog v-model="newTask" @create-task="createTask" />
-    <NewTaskDialog
-      v-model="editDialog"
-      :initial-task="selectedTask"
-      @update-task="updateTask"
-    />
+    <NewTaskDialog v-model="editDialog" :initial-task="selectedTask" @update-task="updateTask" />
     <ConfirmDialog
       v-model="deleteDialog"
       title="Delete Task"
@@ -157,19 +148,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, watch, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { useTaskStore } from "stores/task-store";
-import type { Task } from "src/types/task";
-import NewTaskDialog from "components/TaskDialog.vue";
-import ConfirmDialog from "components/ConfirmDialog.vue";
+import { defineComponent, ref, computed, watch, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useTaskStore } from 'stores/task-store';
+import type { Task } from 'src/types/task';
+import NewTaskDialog from 'components/TaskDialog.vue';
+import ConfirmDialog from 'components/ConfirmDialog.vue';
 import TaskFilterBar from 'components/TaskFilterBar.vue';
-import PriorityBadge from "components/PriorityBadge.vue";
-import TaskBadge from "components/TaskBadge.vue";
-import { useNotify } from "src/composables/useNotify";
+import PriorityBadge from 'components/PriorityBadge.vue';
+import TaskBadge from 'components/TaskBadge.vue';
+import { useNotify } from 'src/composables/useNotify';
 
 export default defineComponent({
-  name: "TaskPage",
+  name: 'TaskPage',
   components: {
     NewTaskDialog,
     ConfirmDialog,
@@ -188,7 +179,6 @@ export default defineComponent({
     const err = ref('');
     const loading = ref(true);
 
-
     onMounted(async () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -200,7 +190,7 @@ export default defineComponent({
       }
     });
 
-     const tasks = computed(() => {
+    const tasks = computed(() => {
       return taskStore.tasks.filter((t) => {
         const matchesSearch =
           !filter.value ||
@@ -221,9 +211,7 @@ export default defineComponent({
     // pagination
     const page = ref(1);
     const pageSize = 8;
-    const maxPage = computed(() =>
-      Math.ceil(tasks.value.length / pageSize)
-    );
+    const maxPage = computed(() => Math.ceil(tasks.value.length / pageSize));
 
     const pagedTasks = computed(() => {
       const start = (page.value - 1) * pageSize;
@@ -233,7 +221,7 @@ export default defineComponent({
     // checkbox selection
     const selectedIds = ref<string[]>([]);
     const selectedTasks = computed(() =>
-      tasks.value.filter((t) => selectedIds.value.includes(String(t.id)))
+      tasks.value.filter((t) => selectedIds.value.includes(String(t.id))),
     );
     const selectAll = ref(false);
 
@@ -244,12 +232,12 @@ export default defineComponent({
     });
 
     function toggleSelectAll(val: boolean) {
-        if (val) {
-          selectedIds.value = pagedTasks.value.map((t) => String(t.id));
-        } else {
-          selectedIds.value = [];
-        }
+      if (val) {
+        selectedIds.value = pagedTasks.value.map((t) => String(t.id));
+      } else {
+        selectedIds.value = [];
       }
+    }
 
     // dialogs
     const newTask = ref(false);
@@ -258,11 +246,11 @@ export default defineComponent({
     const bulkDeleteDialog = ref(false);
     const selectedTask = ref<Task | null>(null);
 
-    function createTask(payload: Omit<Task, "id" | "created_at" | "updated_at">) {
+    function createTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
       taskStore.addTask(payload);
     }
 
-    function updateTask(payload: Omit<Task, "id" | "created_at" | "updated_at">) {
+    function updateTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
       if (selectedTask.value) {
         taskStore.editTask(selectedTask.value.id, payload);
         editDialog.value = false;
@@ -301,8 +289,9 @@ export default defineComponent({
     }
 
     function goToDetail(taskId: string) {
-      void router.push({ name: "task-detail", params: { id: String(taskId) } });
+      void router.push({ name: 'task-detail', params: { id: String(taskId) } });
     }
+
     function editTask(task: Task) {
       selectedTask.value = task;
       editDialog.value = true;
@@ -314,10 +303,10 @@ export default defineComponent({
     }
 
     function formatDate(date: string): string {
-      return new Intl.DateTimeFormat("en-US", {
-        year: "numeric",
-        month: "short", // Jan, Feb, Mar
-        day: "numeric"
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short', // Jan, Feb, Mar
+        day: 'numeric',
       }).format(new Date(date));
     }
 
@@ -349,7 +338,7 @@ export default defineComponent({
       goToDetail,
       editTask,
       askDelete,
-      formatDate
+      formatDate,
     };
   },
 });
