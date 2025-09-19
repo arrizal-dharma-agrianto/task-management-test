@@ -46,8 +46,8 @@
                   class="text-caption text-negative row items-center"
                 >
                   <!-- User -->
-                  <q-icon name="person" size="14px" class="q-mr-xs text-red-7" />
-                  <span>{{ task.assignee }}</span>
+                  <q-icon name="person" size="14px" class="q-mr-xs text-blue" />
+                  <span class="text-blue">{{ task.assignee }}</span>
 
                   <!-- Due date -->
                   <q-icon
@@ -274,6 +274,13 @@ export default defineComponent({
       selectedTasks.value.forEach((task) => {
         taskStore.editTask(task.id, { ...task, is_complete: status });
       });
+      if (selectedTasks.value.length > 0) {
+        success(
+          `${selectedTasks.value.length} task(s) marked as ${
+            status ? 'complete' : 'incomplete'
+          }`
+        );
+      }
       selectedIds.value = [];
       selectAll.value = false;
     }
