@@ -50,8 +50,8 @@ export default defineComponent({
           emphasis: { label: { show: true, fontSize: 18, fontWeight: 'bold' } },
           labelLine: { show: false },
           data: [
-            { value: completedTasks.value, name: 'Completed', itemStyle: { color: 'green' } },
-            { value: pendingTasks.value, name: 'Pending', itemStyle: { color: 'red' } },
+            { value: completedTasks.value, name: 'Completed', itemStyle: { color: '#21BA45' } },
+            { value: pendingTasks.value, name: 'Pending', itemStyle: { color: '#F2C037' } },
           ],
         },
       ],
