@@ -4,7 +4,7 @@
       <div class="text-h4 text-weight-bold">Task Management Dashboard</div>
       <div class="text-subtitle2 text-grey">Overview of your tasks and productivity insights</div>
     </div>
-    <q-scroll-area style="height: 160px;" class="q-mb-md">
+    <q-scroll-area style="height: 160px;" class="">
       <div
         class="row no-wrap q-col-gutter-md"
         style="padding-right: 1px; padding-left: 1px; padding-top: 1px"
@@ -34,7 +34,7 @@
       </div>
     </q-scroll-area>
 
-    <div class="row q-col-gutter-md q-mt-md">
+    <div class="row q-col-gutter-md">
       <div class="col-12 col-md-8">
         <DashboardWidget
           title="Task Overview"
@@ -74,23 +74,41 @@
               class="rounded-button"
             />
           </div>
-          <div v-if="recentActivities.length" class="activity-scroll">
-            <q-timeline dense>
-              <q-timeline-entry
-                v-for="(activity, i) in recentActivities"
-                :key="i"
-                :title="activity.action"
-                :subtitle="activity.time"
+
+          <div v-if="recentActivities.length" class="q-mt-md column gap-sm">
+            <q-card
+              v-for="(activity, i) in recentActivities"
+              :key="i"
+              flat
+              bordered
+              class="q-mb-sm q-pa-sm flex items-start gap-md"
+            >
+              <q-icon
+                :name="activity.action === 'Completed' ? 'check_circle'
+                  : activity.action === 'Overdue' ? 'error'
+                  : activity.action === 'Created' ? 'add_circle'
+                  : 'schedule'"
                 :color="activity.color"
-                icon="event"
-              >
-                <div>{{ activity.desc }}</div>
-              </q-timeline-entry>
-            </q-timeline>
+                size="md"
+              />
+
+              <div class="col q-ml-md">
+                <div class="text-body1 text-weight-medium">
+                  {{ activity.desc }}
+                </div>
+                <div class="text-caption text-grey">
+                  {{ activity.action.toLowerCase() }} • {{ activity.time }}
+                </div>
+              </div>
+            </q-card>
           </div>
-          <div v-else class="text-grey text-subtitle2">No recent activities</div>
+
+          <div v-else class="text-grey text-subtitle2">
+            No recent activities
+          </div>
         </DashboardWidget>
       </div>
+
     </div>
 
     <q-card-section>
@@ -105,7 +123,6 @@ import { useTaskStore } from 'stores/task-store';
 import PriorityChart from 'components/charts/PriorityChart.vue';
 import DashboardWidget from 'components/DashboardWidget.vue';
 import type { Task } from 'src/types/task';
-import { taskService } from 'src/services/task-service';
 import NewTaskDialog from 'components/TaskDialog.vue';
 
 export default defineComponent({
@@ -119,8 +136,6 @@ export default defineComponent({
   setup() {
     const taskStore = useTaskStore();
     const newTask = ref(false);
-    const bulkCompleteDialog = ref(false);
-    const bulkDeleteDialog = ref(false);
 
     const loading = ref(true);
 
@@ -208,7 +223,7 @@ export default defineComponent({
     const recentActivities = computed(() =>
       [...taskStore.tasks]
         .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-        .slice(0, 5)
+        .slice(0, 7)
         .map((t) => {
           let action = 'Updated';
           let color = 'primary';
@@ -235,16 +250,6 @@ export default defineComponent({
       taskStore.addTask(payload);
     }
 
-    function bulkDelete() {
-      taskStore.tasks = [];
-      taskService.saveAll(taskStore.tasks);
-    }
-
-    function confirmBulkDelete() {
-      bulkDelete();
-      bulkDeleteDialog.value = false;
-    }
-
     return {
       newTask,
       totalTasks,
@@ -256,9 +261,6 @@ export default defineComponent({
       createTask,
       statsData,
       loading,
-      confirmBulkDelete,
-      bulkCompleteDialog,
-      bulkDeleteDialog,
       recentActivities,
       taskStore,
     };
