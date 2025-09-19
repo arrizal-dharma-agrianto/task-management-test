@@ -268,11 +268,6 @@ export default defineComponent({
 });
 </script>
 <style scoped>
-.activity-scroll {
-  max-height: 505px;
-  overflow-y: auto;
-  padding-left: 8px;
-}
 .rounded-button{
   border-radius: 100%;
 }
