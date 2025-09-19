@@ -145,3 +145,23 @@ src/
 * Persistent local storage.
 * Responsive and accessible UI.
 
+# ⏱️ Time Tracking - 20 Hours
+
+| Area                               | Hours | Notes                                                                                                                                                                                                                                                                                           |
+| ---------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Initial setup and planning**     | 2h    | Bootstrapped project with Quasar + Vue 3. Defined folder structure (Atomic Design-ish). Setup linting, Prettier, ESLint, and naming conventions. Planned abstractions but postponed over-engineering.                                                                                           |
+| **Core functionality development** | 6h    | **Task CRUD (3h):** LocalStorage persistence, `taskService` abstraction, bulk ops. <br> **State Management (1h):** Composable store, fixed reactivity issues. <br> **Dashboard & Activity (2h):** Cards for priorities & activity log, balanced data density vs readability.                    |
+| **UI/UX implementation**           | 4h    | Applied Quasar components, responsive tables, dialogs. Added confirmations for destructive actions. Iterated heavily on spacing, alignment, and typography. Ensured accessibility (ARIA, roles).                                                                 |
+| **Data layer and abstractions**    | 2h    | Built `taskService` as single entry for CRUD. Designed to swap LocalStorage → API with minimal changes. Strong typing with `Task` interface. Centralized utilities for DRY code.                                                                                                                |
+| **Polish**                         | 5h    | **Refactor:** Split into reusable components (`TaskForm`, `TaskCard`, `ConfirmDialog`). <br> **Service layer:** All flows through `taskService` for future API migration. <br> **Redesign:** Iterated dashboard layout multiple times, struggled with visual hierarchy. This phase was longest. |
+| **Documentation**                  | 1h    | README with setup, project goals, and time log. Explained design decisions and folder structure. Noted abstraction strategy for future contributors.                                                                                                                                            |
+
+---
+
+### ✅ Summary
+
+* Total: **20 hours**
+* Longest phase: **Polish (5h)** → heavy refactor, redesign, and preparing service layer.
+* Core features solid and maintainable, future API migration already supported.
+* Key lesson: **UI design takes longer when your creative sense isn’t cooperating.**
+
