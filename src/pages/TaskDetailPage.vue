@@ -2,8 +2,8 @@
   <q-page padding role="main" aria-label="Task details page">
     <div v-if="task">
       <!-- Header with back and action buttons -->
-      <div class="header-section q-mb-lg">
-        <div class="row justify-between items-center">
+      <div class="row items-center justify-between q-mb-md">
+        <div class="row justify-between items-start">
           <q-btn
             flat
             icon="arrow_back"
@@ -12,30 +12,30 @@
             @click="$router.go(-1)"
             aria-label="Go back"
           />
-          <div class="row q-gutter-sm">
-            <q-btn
-              outline
-              :label="task.is_complete ? 'Completed' : 'Mark as Complete'"
-              :color="task.is_complete ? 'grey' : 'positive'"
-              :disable="task.is_complete"
-              @click="markComplete"
-              aria-label="Mark task as complete"
-            />
-            <q-btn
-              outline
-              label="Edit"
-              color="primary"
-              @click="editTask"
-              aria-label="Edit this task"
-            />
-            <q-btn
-              outline
-              label="Delete"
-              color="negative"
-              @click="deleteTask"
-              aria-label="Delete this task"
-            />
-          </div>
+        </div>
+        <div class="row q-gutter-sm">
+          <q-btn
+            outline
+            :label="task.is_complete ? 'Completed' : 'Mark as Complete'"
+            :color="task.is_complete ? 'grey' : 'positive'"
+            :disable="task.is_complete"
+            @click="markComplete"
+            aria-label="Mark task as complete"
+          />
+          <q-btn
+            outline
+            label="Edit"
+            color="primary"
+            @click="editTask"
+            aria-label="Edit this task"
+          />
+          <q-btn
+            outline
+            label="Delete"
+            color="negative"
+            @click="deleteTask"
+            aria-label="Delete this task"
+          />
         </div>
       </div>
 
@@ -45,7 +45,7 @@
           <q-card
             class="task-info-card q-pa-lg shadow-2 rounded-borders"
             role="article"
-            style="min-height: 430px;"
+            style="height: 100%;"
             :aria-label="`Task details for ${task.title}`"
           >
             <div class="text-h5 text-weight-bold q-mb-lg">Task Information</div>
