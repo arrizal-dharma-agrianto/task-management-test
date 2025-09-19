@@ -167,8 +167,17 @@ export default defineComponent({
     const completedTasks = computed(() => taskStore.tasks.filter((t) => t.is_complete).length);
     const pendingTasks = computed(() => taskStore.tasks.filter((t) => !t.is_complete).length);
     const overdueTasks = computed(() => {
-      const now = new Date().toISOString().split('T')[0] ?? '';
-      return taskStore.tasks.filter((t) => !t.is_complete && t.due_date < now).length;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return taskStore.tasks.filter((t) => {
+        if (t.is_complete || !t.due_date) return false;
+
+        const dueDate = new Date(t.due_date);
+        dueDate.setHours(0, 0, 0, 0);
+
+        return dueDate <= today;
+      }).length;
     });
 
     const priorityData = computed(() => {
