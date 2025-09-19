@@ -4,11 +4,11 @@
     outline
     class="text-bold row items-center text-h7 q-px-sm q-py-xs"
   >
-    <q-icon
+    <!-- <q-icon
       :name="priorityIcon"
       size="16px"
       class="q-mr-xs"
-    />
+    /> -->
     {{ priorityLabel }}
   </q-badge>
 </template>
@@ -31,18 +31,18 @@ const priorityColor = computed(() => {
   }
 })
 
-const priorityIcon = computed(() => {
-  switch (props.priority?.toLowerCase()) {
-    case 'high':
-      return 'priority_high'
-    case 'medium':
-      return 'arrow_upward'
-    case 'low':
-      return 'arrow_downward'
-    default:
-      return 'help_outline'
-  }
-})
+// const priorityIcon = computed(() => {
+//   switch (props.priority?.toLowerCase()) {
+//     case 'high':
+//       return 'priority_high'
+//     case 'medium':
+//       return 'arrow_upward'
+//     case 'low':
+//       return 'arrow_downward'
+//     default:
+//       return 'help_outline'
+//   }
+// })
 
 const priorityLabel = computed(() => {
   const p = props.priority?.toLowerCase()
