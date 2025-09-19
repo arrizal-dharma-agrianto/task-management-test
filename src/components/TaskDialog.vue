@@ -3,63 +3,70 @@
     :model-value="modelValue"
     @update:model-value="(val) => $emit('update:modelValue', val)"
   >
-    <q-card style="min-width: 350px">
-      <q-card-section>
-        <div class="text-h6">
+    <q-card flat class="task-dialog-card" style="width: 100%; max-width: 520px">
+      <q-card-section class="q-pb-sm">
+        <div class="text-subtitle1 text-weight-medium">
           {{ initialTask ? 'Edit Task' : 'Add Task' }}
         </div>
       </q-card-section>
 
       <q-form ref="formRef" @submit.prevent="confirm">
         <q-card-section class="q-pt-none">
-          <q-input
-            dense
-            v-model="title"
-            label="Title"
-            autofocus
-            :rules="[(val) => !!val || '*Required']"
-          />
-          <q-input
-            dense
-            v-model="desc"
-            label="Description"
-            class="q-mt-sm"
-            :rules="[(val) => !!val || 'Description is required']"
-          />
-          <q-input
-            dense
-            v-model="assignee"
-            label="Assignee"
-            class="q-mt-sm"
-            :rules="[(val) => !!val || 'Assignee is required']"
-          />
-          <q-select
-            dense
-            v-model="priority"
-            :options="['low', 'medium', 'high']"
-            label="Priority"
-            class="q-mt-sm"
-            :rules="[(val) => !!val || 'Priority is required']"
-          />
-          <q-input
-            dense
-            v-model="due_date"
-            type="date"
-            label="Due Date"
-            class="q-mt-sm"
-            :rules="[(val) => !!val || 'Due date is required']"
-          />
-          <q-checkbox
-            v-if="initialTask"
-            v-model="is_complete"
-            label="Mark as complete"
-            class="q-mt-sm"
-          />
+          <div class="q-gutter-md">
+            <q-input
+              v-model="title"
+              label="Title"
+              filled
+              autofocus
+              lazy-rules
+              :rules="[(val) => !!val || '*Required']"
+            />
+            <q-input
+              v-model="desc"
+              label="Description"
+              filled
+              lazy-rules
+              :rules="[(val) => !!val || '*Required']"
+            />
+            <q-input
+              v-model="assignee"
+              label="Assignee"
+              filled
+              lazy-rules
+              :rules="[(val) => !!val || '*Required']"
+            />
+            <q-select
+              v-model="priority"
+              :options="priorityOptions"
+              label="Priority"
+              emit-value
+              map-options
+              filled
+              lazy-rules
+              :rules="[(val) => !!val || '*Required']"
+            />
+            <q-input
+              v-model="due_date"
+              type="date"
+              label="Due Date"
+              filled
+              lazy-rules
+              :rules="[(val) => !!val || '*Required']"
+            />
+            <q-checkbox v-if="initialTask" v-model="is_complete" label="Mark as complete" />
+          </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="text-primary">
-          <q-btn flat label="Cancel" @click="close" />
-          <q-btn flat label="Confirm" type="submit" :loading="loading" :disable="loading" />
+        <q-card-actions align="right" class="q-pt-none q-gutter-sm">
+          <q-btn outline color="primary" label="Cancel" @click="close" />
+          <q-btn
+            unelevated
+            color="primary"
+            label="Confirm"
+            type="submit"
+            :loading="loading"
+            :disable="loading"
+          />
         </q-card-actions>
       </q-form>
     </q-card>
@@ -94,6 +101,11 @@ export default defineComponent({
     const due_date = ref('');
     const is_complete = ref(false);
     const loading = ref(false);
+    const priorityOptions = [
+      { label: 'Low', value: 'low' },
+      { label: 'Medium', value: 'medium' },
+      { label: 'High', value: 'high' },
+    ];
 
     watch(
       () => props.initialTask,
@@ -178,7 +190,27 @@ export default defineComponent({
       confirm,
       formRef,
       loading,
+      priorityOptions,
     };
   },
 });
 </script>
+<style scoped>
+.task-dialog-card {
+  border-radius: 14px;
+  background: var(--q-background, #ffffff);
+}
+
+/* Subtle label and helper colors are handled by Quasar theme; keep customizations minimal */
+
+/* Ensure checkbox aligns with inputs spacing */
+.q-checkbox {
+  margin-top: 2px;
+}
+
+@media (max-width: 600px) {
+  .task-dialog-card {
+    border-radius: 12px;
+  }
+}
+</style>
