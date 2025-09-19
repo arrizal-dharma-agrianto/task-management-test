@@ -1,97 +1,143 @@
 <template>
   <q-page padding>
-    <q-table
-      title="Task List"
-      :rows="tasks"
-      :columns="columns"
-      row-key="id"
-      flat
-      bordered
-      @row-click="goToDetail"
-      :filter="filter"
-      selection="multiple"
-      v-model:selected="selected"
-      :loading="loading"
-      aria-label="Task list table"
-      role="table"
-    >
-      <template v-slot:top-right>
-        <div
-          v-if="selected.length > 0"
-          class="row items-center q-gutter-sm"
-          role="toolbar"
-          aria-label="Bulk actions for selected tasks"
-        >
+    <!-- Header -->
+    <div class="row items-center justify-between q-mb-md">
+      <div class="row items-center q-mb-md q-ml-md">
+        <q-checkbox
+        v-model="selectAll"
+        @update:model-value="toggleSelectAll"
+      />
+      <div class="text-h6">TASK ({{ tasks.length }})</div>
+      </div>
+        <div class="row items-center">
           <q-btn
-            color="positive"
-            label="Mark Complete"
-            @click="markSelected(true)"
-            aria-label="Mark selected tasks complete"
+              color="primary"
+              label="+ New Task"
+              @click="newTask = true"
+              flat
+              rounded
           />
-          <q-btn
-            color="grey"
-            label="Mark Incomplete"
-            @click="markSelected(false)"
-            aria-label="Mark selected tasks incomplete"
-          />
-          <q-btn
-            color="negative"
-            label="Bulk Delete"
-            @click="openBulkDeleteConfirm"
-            aria-label="Delete selected tasks"
-          />
-        </div>
-        <div v-else class="row items-center" aria-label="Task actions">
-          <q-btn
-            color="primary"
-            label="Add Task"
-            @click="newTask = true"
-            aria-label="Add new task"
-          />
-          <NewTaskDialog v-model="newTask" @create-task="createTask" />
-
           <TaskFilterBar
             v-model:search="filter"
             v-model:assignee="assigneeFilter"
             v-model:dueDate="dueDateFilter"
             aria-label="Task filter bar"
-          />
+            />
         </div>
-      </template>
+      </div>
 
-      <template v-slot:no-data>
-        <div class="full-width row flex-center text-grey-7 q-pa-md">
-          <q-icon name="inbox" size="md" class="q-mr-sm" />
-          <span>No tasks found</span>
+    <!-- Bulk Actions -->
+    <div
+      v-if="selectedIds.length > 0"
+      class="row items-center q-gutter-sm q-mb-md"
+    >
+      <q-btn
+        color="positive"
+        label="Mark Complete"
+        @click="markSelected(true)"
+      />
+      <q-btn
+        color="grey"
+        label="Mark Incomplete"
+        @click="markSelected(false)"
+      />
+      <q-btn
+        color="negative"
+        label="Bulk Delete"
+        @click="bulkDeleteDialog = true"
+      />
+    </div>
+
+    <!-- Task List -->
+    <div v-if="pagedTasks.length > 0" class="column q-gutter-md">
+      <q-card
+        v-for="task in pagedTasks"
+        :key="task.id"
+        class="q-pa-md cursor-pointer"
+        flat
+        bordered
+        style="border-radius: 12px;"
+        @click="goToDetail(task.id)"
+      >
+        <div class="row items-center justify-between">
+          <!-- Checkbox + Title -->
+          <div class="row items-start" @click.stop>
+            <q-checkbox
+              v-model="selectedIds"
+              :val="task.id"
+              size="md"
+              class="q-mr-md"
+            />
+            <div class="row items-start q-gutter-sm justify-between">
+              <div>
+                <div style="font-size: 18px;" class="text-subtitle1">{{ task.title }}</div>
+                <div style="font-size: 14px; margin-top: 8px;"    class="text-caption text-negative row items-center">
+                <!-- User -->
+                <q-icon name="person" size="14px" class="q-mr-xs text-red-7" />
+                <span>{{ task.assignee }}</span>
+
+                <!-- Due date -->
+                <q-icon name="event" size="14px" class="q-ml-md q-mr-xs text-green-7" />
+                <span class="text-positive">{{ formatDate(task.due_date) }}</span>
+              </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Priority & Status -->
+          <div class="row items-center q-gutter-sm" @click.stop>
+            <PriorityBadge :priority="task.priority" />
+                <TaskBadge :status="task.is_complete" />
+            <!-- Action Menu -->
+            <q-btn icon="more_vert" flat round dense>
+              <q-menu auto-close>
+                <q-list style="min-width: 150px">
+                  <q-item clickable v-ripple @click="editTask(task)">
+                    <q-item-section avatar>
+                      <q-icon name="edit" color="primary" />
+                    </q-item-section>
+                    <q-item-section>Edit</q-item-section>
+                  </q-item>
+
+                  <q-item clickable v-ripple @click="askDelete(task)">
+                    <q-item-section avatar>
+                      <q-icon name="delete" color="negative" />
+                    </q-item-section>
+                    <q-item-section class="text-negative">Delete</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+          </div>
         </div>
-      </template>
+      </q-card>
+    </div>
 
-      <template v-slot:body-cell-is_complete="props">
-        <q-td :props="props" aria-label="Task completion status">
-          <TaskBadge :status="props.row.is_complete" />
-        </q-td>
-      </template>
+    <!-- Empty State -->
+    <div v-else class="flex flex-center text-grey-7 q-my-xl">
+      <q-icon name="inbox" size="md" class="q-mr-sm" />
+      <span>No tasks found</span>
+    </div>
 
-      <template v-slot:body-cell-priority="props">
-        <q-td :props="props" aria-label="Task priority">
-          <PriorityBadge :priority="props.row.priority" />
-        </q-td>
-      </template>
+    <!-- Pagination -->
+    <div v-if="tasks.length > pageSize" class="row justify-center q-mt-lg">
+      <q-pagination
+        v-model="page"
+        :max="maxPage"
+        max-pages="5"
+        boundary-numbers
+        direction-links
+        color="primary"
+      />
+    </div>
 
-      <template v-slot:body-cell-actions="props">
-        <q-td :props="props" aria-label="Task actions">
-          <TaskActions :row="props.row" @edit="openEditDialog" @delete="openDeleteConfirm" />
-        </q-td>
-      </template>
-    </q-table>
-
+    <!-- Dialogs -->
+    <NewTaskDialog v-model="newTask" @create-task="createTask" />
     <NewTaskDialog
       v-model="editDialog"
       :initial-task="selectedTask"
       @update-task="updateTask"
-      aria-label="Edit task dialog"
     />
-
     <ConfirmDialog
       v-model="deleteDialog"
       title="Delete Task"
@@ -101,7 +147,6 @@
       color="negative"
       icon="warning"
       @confirm="confirmDelete"
-      aria-label="Delete task confirmation dialog"
     />
     <ConfirmDialog
       v-model="bulkDeleteDialog"
@@ -112,49 +157,42 @@
       color="negative"
       icon="warning"
       @confirm="confirmBulkDelete"
-      aria-label="Bulk delete confirmation dialog"
     />
   </q-page>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from 'vue';
-import type {  QTableColumn } from 'quasar';
-import { useRouter } from 'vue-router';
-import TaskDialog from 'components/TaskDialog.vue';
-import { useTaskStore } from 'stores/task-store';
-import type { Task } from 'src/types/task';
+import { defineComponent, ref, computed, watch, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useTaskStore } from "stores/task-store";
+import type { Task } from "src/types/task";
+import NewTaskDialog from "components/TaskDialog.vue";
+import ConfirmDialog from "components/ConfirmDialog.vue";
 import TaskFilterBar from 'components/TaskFilterBar.vue';
-import TaskBadge from 'components/TaskBadge.vue';
-import PriorityBadge from 'components/PriorityBadge.vue';
-import TaskActions from 'components/TaskActions.vue';
-import ConfirmDialog from 'components/ConfirmDialog.vue';
-import { useNotify } from 'src/composables/useNotify';
+import PriorityBadge from "components/PriorityBadge.vue";
+import TaskBadge from "components/TaskBadge.vue";
+import { useNotify } from "src/composables/useNotify";
 
 export default defineComponent({
-  name: 'TaskPage',
+  name: "TaskPage",
   components: {
-    NewTaskDialog: TaskDialog,
-    TaskFilterBar,
-    TaskBadge,
+    NewTaskDialog,
     ConfirmDialog,
     PriorityBadge,
-    TaskActions,
+    TaskFilterBar,
+    TaskBadge,
   },
   setup() {
-    const { success, error } = useNotify();
     const router = useRouter();
     const taskStore = useTaskStore();
-
+    const { success } = useNotify();
     const filter = ref('');
     const show_filter = ref(false);
     const assigneeFilter = ref('');
     const dueDateFilter = ref('');
-    const selected = ref<Task[]>([]);
-    const bulkDeleteDialog = ref(false);
-
+    const err = ref('');
     const loading = ref(true);
-    const err = ref<string | null>(null);
+
 
     onMounted(async () => {
       try {
@@ -167,7 +205,7 @@ export default defineComponent({
       }
     });
 
-    const tasks = computed(() => {
+     const tasks = computed(() => {
       return taskStore.tasks.filter((t) => {
         const matchesSearch =
           !filter.value ||
@@ -185,105 +223,138 @@ export default defineComponent({
       });
     });
 
-    const columns: QTableColumn[] = [
-      { name: 'title', label: 'Title', field: 'title', align: 'left' },
-      { name: 'desc', label: 'Description', field: 'desc', align: 'left' },
-      { name: 'priority', label: 'Priority', field: 'priority', align: 'center' },
-      { name: 'assignee', label: 'Assignee', field: 'assignee', align: 'center' },
-      { name: 'due_date', label: 'Due Date', field: 'due_date', align: 'center' },
-      { name: 'is_complete', label: 'Status', field: 'is_complete', align: 'center' },
-      { name: 'actions', label: 'Actions', field: 'id', align: 'center' },
-    ];
+    // pagination
+    const page = ref(1);
+    const pageSize = 8;
+    const maxPage = computed(() =>
+      Math.ceil(tasks.value.length / pageSize)
+    );
 
+    const pagedTasks = computed(() => {
+      const start = (page.value - 1) * pageSize;
+      return tasks.value.slice(start, start + pageSize);
+    });
+
+    // checkbox selection
+    const selectedIds = ref<string[]>([]);
+    const selectedTasks = computed(() =>
+      tasks.value.filter((t) => selectedIds.value.includes(String(t.id)))
+    );
+    const selectAll = ref(false);
+
+    watch(pagedTasks, () => {
+      // reset selectAll setiap ganti halaman
+      selectAll.value = false;
+      selectedIds.value = [];
+    });
+
+    function toggleSelectAll(val: boolean) {
+        if (val) {
+          selectedIds.value = pagedTasks.value.map((t) => String(t.id));
+        } else {
+          selectedIds.value = [];
+        }
+      }
+
+    // dialogs
     const newTask = ref(false);
     const editDialog = ref(false);
     const deleteDialog = ref(false);
+    const bulkDeleteDialog = ref(false);
     const selectedTask = ref<Task | null>(null);
 
-    function createTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
+    function createTask(payload: Omit<Task, "id" | "created_at" | "updated_at">) {
       taskStore.addTask(payload);
     }
 
-    function openEditDialog(task: Task) {
-      selectedTask.value = { ...task };
-      editDialog.value = true;
-    }
-
-    function updateTask(payload: Omit<Task, 'id' | 'created_at' | 'updated_at'>) {
+    function updateTask(payload: Omit<Task, "id" | "created_at" | "updated_at">) {
       if (selectedTask.value) {
         taskStore.editTask(selectedTask.value.id, payload);
         editDialog.value = false;
       }
     }
 
-    function openDeleteConfirm(task: Task) {
+    function openTaskMenu(task: Task) {
       selectedTask.value = task;
-      deleteDialog.value = true;
+      editDialog.value = true;
     }
 
     function confirmDelete() {
       if (selectedTask.value) {
         taskStore.deleteTask(selectedTask.value.id);
         deleteDialog.value = false;
-
         success(`Task "${selectedTask.value.title}" deleted successfully!`);
       }
     }
 
-    async function goToDetail(_evt: unknown, row: Task) {
-      try {
-        await router.push({ name: 'task-detail', params: { id: row.id } });
-      } catch {
-        err.value = 'Failed to navigate to task detail.';
-        error('Failed to navigate to task detail.');
-      }
-    }
-
     function markSelected(status: boolean) {
-      selected.value.forEach((task) => {
+      selectedTasks.value.forEach((task) => {
         taskStore.editTask(task.id, { ...task, is_complete: status });
       });
-      selected.value = [];
-    }
-
-    function openBulkDeleteConfirm() {
-      bulkDeleteDialog.value = true;
+      selectedIds.value = [];
+      selectAll.value = false;
     }
 
     function confirmBulkDelete() {
-      selected.value.forEach((task) => {
+      selectedTasks.value.forEach((task) => {
         taskStore.deleteTask(task.id);
       });
-
-      success(`${selected.value.length} task deleted!`);
-
-      selected.value = [];
+      success(`${selectedTasks.value.length} tasks deleted!`);
+      selectedIds.value = [];
+      selectAll.value = false;
       bulkDeleteDialog.value = false;
+    }
+
+    function goToDetail(taskId: string) {
+      void router.push({ name: "task-detail", params: { id: String(taskId) } });
+    }
+    function editTask(task: Task) {
+      selectedTask.value = task;
+      editDialog.value = true;
+    }
+
+    function askDelete(task: Task) {
+      selectedTask.value = task;
+      deleteDialog.value = true;
+    }
+
+    function formatDate(date: string): string {
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short", // Jan, Feb, Mar
+        day: "numeric"
+      }).format(new Date(date));
     }
 
     return {
       tasks,
-      columns,
+      page,
+      pageSize,
+      maxPage,
+      pagedTasks,
+      selectedIds,
+      selectedTasks,
+      selectAll,
       newTask,
       editDialog,
       deleteDialog,
+      bulkDeleteDialog,
       selectedTask,
-      createTask,
-      openEditDialog,
-      updateTask,
-      openDeleteConfirm,
-      confirmDelete,
-      goToDetail,
       filter,
       show_filter,
       assigneeFilter,
       dueDateFilter,
-      selected,
-      markSelected,
-      loading,
-      bulkDeleteDialog,
-      openBulkDeleteConfirm,
+      createTask,
+      updateTask,
+      confirmDelete,
       confirmBulkDelete,
+      markSelected,
+      openTaskMenu,
+      toggleSelectAll,
+      goToDetail,
+      editTask,
+      askDelete,
+      formatDate
     };
   },
 });
