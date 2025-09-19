@@ -1,18 +1,19 @@
 <template>
-  <ECharts :option="options" class="q-mt-md" autoresize style="height: 285px" />
+  <ECharts :option="options" class="q-mt-md" autoresize style="height: 240px" />
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
-import ECharts from 'vue-echarts';
-import { useTaskStore } from 'stores/task-store';
+import { defineComponent, computed } from 'vue'
+import ECharts from 'vue-echarts'
+import { useTaskStore } from 'stores/task-store'
 
-import { CanvasRenderer } from 'echarts/renderers';
-import { PieChart as Pie } from 'echarts/charts';
-import { use } from 'echarts/core';
-import { LegendComponent, TooltipComponent } from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers'
+import { PieChart as Pie } from 'echarts/charts'
+import { use } from 'echarts/core'
+import { LegendComponent, TooltipComponent } from 'echarts/components'
+import { getTaskStats } from 'src/utils/taskStats';
 
-use([CanvasRenderer, Pie, TooltipComponent, LegendComponent]);
+use([CanvasRenderer, Pie, TooltipComponent, LegendComponent])
 
 export default defineComponent({
   name: 'PieChart',
@@ -20,10 +21,9 @@ export default defineComponent({
     ECharts,
   },
   setup() {
-    const taskStore = useTaskStore();
+    const taskStore = useTaskStore()
 
-    const completedTasks = computed(() => taskStore.tasks.filter((t) => t.is_complete).length);
-    const pendingTasks = computed(() => taskStore.tasks.filter((t) => !t.is_complete).length);
+    const stats = computed(() => getTaskStats(taskStore.tasks))
 
     const options = computed(() => ({
       tooltip: {
@@ -50,16 +50,17 @@ export default defineComponent({
           emphasis: { label: { show: true, fontSize: 18, fontWeight: 'bold' } },
           labelLine: { show: false },
           data: [
-            { value: completedTasks.value, name: 'Completed', itemStyle: { color: '#21BA45' } },
-            { value: pendingTasks.value, name: 'Pending', itemStyle: { color: '#F2C037' } },
+            { value: stats.value.completed, name: 'Completed', itemStyle: { color: '#21BA45' } },
+            { value: stats.value.pending, name: 'Pending', itemStyle: { color: '#F2C037' } },
+            { value: stats.value.overdue, name: 'Overdue', itemStyle: { color: '#DB2828' } },
           ],
         },
       ],
-    }));
+    }))
 
-    return { options };
+    return { options }
   },
-});
+})
 </script>
 
 <style scoped></style>

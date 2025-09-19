@@ -75,29 +75,31 @@
             />
           </div>
 
-          <div v-if="recentActivities.length" class="q-mt-md column gap-sm">
+          <div v-if="recentActivities.length" class=" column ">
             <q-card
               v-for="(activity, i) in recentActivities"
               :key="i"
               flat
               bordered
-              class="q-mb-sm q-pa-sm flex items-start gap-md"
+              class="q-mb-sm q-pa-sm flex items-start "
             >
               <q-icon
                 :name="activity.action === 'Completed' ? 'check_circle'
-                  : activity.action === 'Overdue' ? 'error'
-                  : activity.action === 'Created' ? 'add_circle'
-                  : 'schedule'"
+            : activity.action === 'Overdue' ? 'error'
+            : activity.action === 'Created' ? 'add_circle'
+            : 'schedule'"
                 :color="activity.color"
-                size="md"
+                size="sm"
+                class="q-mt-xs"
               />
 
               <div class="col q-ml-md">
-                <div class="text-body1 text-weight-medium">
-                  {{ activity.desc }}
+                <div class="text-body2">
+                  <span class="text-weight-bold">{{ activity.desc }}</span>
+                  was {{ activity.action.toLowerCase() }}
                 </div>
                 <div class="text-caption text-grey">
-                  {{ activity.action.toLowerCase() }} • {{ activity.time }}
+                  {{ activity.time }}
                 </div>
               </div>
             </q-card>
@@ -124,6 +126,8 @@ import PriorityChart from 'components/charts/PriorityChart.vue';
 import DashboardWidget from 'components/DashboardWidget.vue';
 import type { Task } from 'src/types/task';
 import NewTaskDialog from 'components/TaskDialog.vue';
+import { date } from 'quasar'
+import { getPriorityStats, getTaskStats } from 'src/utils/taskStats';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -148,72 +152,16 @@ export default defineComponent({
       }
     });
 
+    const stats = computed(() => getTaskStats(taskStore.tasks))
+
     const statsData = computed(() => [
-      {
-        label: 'Total',
-        value: totalTasks.value,
-        color: 'text-primary',
-        bg: 'primary',
-        icon: 'task',
-      },
-      {
-        label: 'Completed',
-        value: completedTasks.value,
-        color: 'text-positive',
-        bg: 'positive',
-        icon: 'check_circle',
-      },
-      {
-        label: 'Pending',
-        value: pendingTasks.value,
-        color: 'text-warning',
-        bg: 'warning',
-        icon: 'schedule',
-      },
-      {
-        label: 'Overdue',
-        value: overdueTasks.value,
-        color: 'text-negative',
-        bg: 'negative',
-        icon: 'error',
-      },
-    ]);
-    const totalTasks = computed(() => taskStore.tasks.length);
-    const completedTasks = computed(() => taskStore.tasks.filter((t) => t.is_complete).length);
-    const pendingTasks = computed(() => taskStore.tasks.filter((t) => !t.is_complete).length);
-    const overdueTasks = computed(() => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      return taskStore.tasks.filter((t) => {
-        if (t.is_complete || !t.due_date) return false;
-
-        const dueDate = new Date(t.due_date);
-        dueDate.setHours(0, 0, 0, 0);
-
-        return dueDate <= today;
-      }).length;
-    });
-
-    const priorityData = computed(() => {
-      return [
-        {
-          name: 'High',
-          count: taskStore.tasks.filter((t) => t.priority === 'high').length,
-          color: 'bg-red',
-        },
-        {
-          name: 'Medium',
-          count: taskStore.tasks.filter((t) => t.priority === 'medium').length,
-          color: 'bg-yellow',
-        },
-        {
-          name: 'Low',
-          count: taskStore.tasks.filter((t) => t.priority === 'low').length,
-          color: 'bg-green',
-        },
-      ];
-    });
+      { label: 'Total', value: stats.value.total, color: 'text-primary', bg: 'primary', icon: 'task' },
+      { label: 'Completed', value: stats.value.completed, color: 'text-positive', bg: 'positive', icon: 'check_circle' },
+      { label: 'Pending', value: stats.value.pending, color: 'text-warning', bg: 'warning', icon: 'schedule' },
+      { label: 'Overdue', value: stats.value.overdue, color: 'text-negative', bg: 'negative', icon: 'error' },
+    ])
+    const totalTasks = computed(() => stats.value.total)
+    const priorityData = computed(() => getPriorityStats(taskStore.tasks))
 
     const recentTasks = computed(() =>
       [...taskStore.tasks]
@@ -225,26 +173,26 @@ export default defineComponent({
         .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
         .slice(0, 7)
         .map((t) => {
-          let action = 'Updated';
-          let color = 'primary';
+          let action = 'Updated'
+          let color = 'primary'
           if (!t.is_complete && new Date(t.due_date) < new Date()) {
-            action = 'Overdue';
-            color = 'negative';
+            action = 'Overdue'
+            color = 'negative'
           } else if (t.is_complete) {
-            action = 'Completed';
-            color = 'positive';
+            action = 'Completed'
+            color = 'positive'
           } else if (t.created_at === t.updated_at) {
-            action = 'Created';
-            color = 'info';
+            action = 'Created'
+            color = 'info'
           }
           return {
             action,
-            time: new Date(t.updated_at).toLocaleString(),
+            time: date.formatDate(t.updated_at, 'MMM D, hh:mm A'),
             desc: t.title,
             color,
-          };
-        }),
-    );
+          }
+        })
+    )
 
     function createTask(payload: Task) {
       taskStore.addTask(payload);
@@ -252,10 +200,6 @@ export default defineComponent({
 
     return {
       newTask,
-      totalTasks,
-      completedTasks,
-      pendingTasks,
-      overdueTasks,
       priorityData,
       recentTasks,
       createTask,
@@ -263,10 +207,13 @@ export default defineComponent({
       loading,
       recentActivities,
       taskStore,
+      stats,
+      totalTasks,
     };
   },
 });
 </script>
+
 <style scoped>
 .rounded-button{
   border-radius: 100%;
