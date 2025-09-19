@@ -7,4 +7,5 @@ export interface Task {
   due_date: string
   created_at: string
   updated_at: string
+  is_complete: boolean
 }

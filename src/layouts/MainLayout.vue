@@ -12,7 +12,7 @@
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label header> Essential Links </q-item-label>
+        <q-item-label header> Task Management </q-item-label>
 
         <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
       </q-list>
@@ -38,11 +38,6 @@ const linksList: EssentialLinkProps[] = [
     title: 'Task List',
     icon: 'list',
     link: '/task-list',
-  },
-  {
-    title: 'Task Detail',
-    icon: 'list',
-    link: '/task-detail',
   }
 ];
 
