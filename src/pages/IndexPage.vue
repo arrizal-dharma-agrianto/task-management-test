@@ -4,107 +4,54 @@
       <div class="text-h4 text-weight-bold">Task Management Dashboard</div>
       <div class="text-subtitle2 text-grey">Overview of your tasks and productivity insights</div>
     </div>
-
-    <div class="row q-col-gutter-md q-mb-md" role="region" aria-label="Task statistics summary">
+    <q-scroll-area style="height: 140px;" class="q-mb-md">
       <div
-        class="col-3"
-        v-for="stat in statsData"
-        :key="stat.label"
-        tabindex="0"
-        role="group"
-        :aria-label="`${stat.label}: ${stat.value}`"
+        class="row no-wrap q-col-gutter-md"
+        role="region"
+        aria-label="Task statistics summary"
       >
-        <DashboardWidget :title="stat.label" :loading="loading">
-          <div class="row items-center justify-between">
-            <div :class="stat.color + ' text-h6 text-weight-bold'">{{ stat.value }}</div>
-            <q-avatar :color="stat.bg" size="40px" role="img" :aria-label="stat.label">
-              <q-icon :name="stat.icon" color="white" />
-            </q-avatar>
-          </div>
-        </DashboardWidget>
+        <div
+          class="col-3"
+          v-for="stat in statsData"
+          :key="stat.label"
+          tabindex="0"
+          role="group"
+          :aria-label="`${stat.label}: ${stat.value}`"
+          style="min-width: 220px;"
+        >
+          <DashboardWidget :title="stat.label" :loading="loading">
+            <div class="row items-center justify-between">
+              <div :class="stat.color + ' text-h6 text-weight-bold'">
+                {{ stat.value }}
+              </div>
+              <q-avatar :color="stat.bg" size="40px" role="img" :aria-label="stat.label">
+                <q-icon :name="stat.icon" color="white" />
+              </q-avatar>
+            </div>
+          </DashboardWidget>
+        </div>
       </div>
-    </div>
+    </q-scroll-area>
 
-    <DashboardWidget title="Quick Actions">
-      <q-card-actions align="around" role="toolbar" aria-label="Quick task actions">
-        <q-btn
-          color="primary"
-          icon="add"
-          label="Add Task"
-          @click="newTask = true"
-          aria-label="Add new task"
-        />
-        <q-btn
-          color="positive"
-          icon="done_all"
-          label="Bulk Complete"
-          @click="bulkCompleteDialog = true"
-          aria-label="Mark all tasks as complete"
-        />
-        <q-btn
-          color="negative"
-          icon="delete_sweep"
-          label="Bulk Delete"
-          @click="bulkDeleteDialog = true"
-          aria-label="Delete all tasks permanently"
-        />
-        <q-btn
-          color="grey-8"
-          icon="filter_alt"
-          label="Filter & Search"
-          @click="toggleFilters"
-          aria-label="Open filter and search options"
-        />
-      </q-card-actions>
-    </DashboardWidget>
-    <ConfirmBulkDialog
-      v-model="bulkCompleteDialog"
-      title="Mark ALL tasks as completed?"
-      message="This will mark every task as completed. Are you sure?"
-      confirm-label="Confirm"
-      cancel-label="Cancel"
-      color="positive"
-      icon="done_all"
-      @confirm="confirmBulkComplete"
-      aria-label="Confirm bulk complete dialog"
-    />
-
-    <ConfirmBulkDialog
-      v-model="bulkDeleteDialog"
-      title="Delete ALL tasks permanently?"
-      message="This action cannot be undone. Continue?"
-      confirm-label="Delete"
-      cancel-label="Cancel"
-      color="negative"
-      icon="warning"
-      @confirm="confirmBulkDelete"
-      aria-label="Confirm bulk delete dialog"
-    />
     <div class="row q-col-gutter-md q-mt-md">
-      <div class="col-12" role="region" aria-label="Task distribution pie chart">
-        <PieChart />
-      </div>
-      <div class="col-12 col-md-4">
+      <div class="col-12 col-md-8">
+        <DashboardWidget
+          title="Task Overview"
+          :loading="loading"
+          role="region"
+          aria-label="Task distribution pie chart"
+        >
+          <PieChart :tasks="taskStore.tasks" />
+        </DashboardWidget>
+
         <DashboardWidget
           title="Tasks by Priority"
           :loading="loading"
           role="region"
           aria-label="Tasks grouped by priority"
+          class="q-mt-md"
         >
           <PriorityChart :data="priorityData" :total="totalTasks" />
-        </DashboardWidget>
-      </div>
-      <div class="col-12 col-md-4">
-        <DashboardWidget
-          title="Task Statistics"
-          :loading="loading"
-          role="region"
-          aria-label="Detailed task statistics"
-        >
-          <div class="text-subtitle1">Total: {{ totalTasks }}</div>
-          <div class="text-positive">Completed: {{ completedTasks }}</div>
-          <div class="text-warning">Pending: {{ pendingTasks }}</div>
-          <div class="text-negative">Overdue: {{ overdueTasks }}</div>
         </DashboardWidget>
       </div>
 
@@ -114,8 +61,33 @@
           :loading="loading"
           role="region"
           aria-label="Recent task activity"
+          class="recent-activity"
         >
-          <TaskList :tasks="recentTasks" />
+          <div class="" style="position: absolute; top: -50px; right: 14px">
+            <q-btn
+              color="primary"
+              icon="add"
+              label="Add Task"
+              @click="newTask = true"
+              aria-label="Add new task"
+              dense
+            />
+          </div>
+          <div v-if="recentActivities.length" class="activity-scroll">
+            <q-timeline dense>
+              <q-timeline-entry
+                v-for="(activity, i) in recentActivities"
+                :key="i"
+                :title="activity.action"
+                :subtitle="activity.time"
+                :color="activity.color"
+                icon="event"
+              >
+                <div>{{ activity.desc }}</div>
+              </q-timeline-entry>
+            </q-timeline>
+          </div>
+          <div v-else class="text-grey text-subtitle2">No recent activities</div>
         </DashboardWidget>
       </div>
     </div>
@@ -131,11 +103,9 @@ import { defineComponent, computed, ref, onMounted, defineAsyncComponent } from 
 import { useTaskStore } from 'stores/task-store';
 import PriorityChart from 'components/charts/PriorityChart.vue';
 import DashboardWidget from 'components/DashboardWidget.vue';
-import TaskList from 'components/TaskList.vue';
 import type { Task } from 'src/types/task';
 import { taskService } from 'src/services/task-service';
 import NewTaskDialog from 'components/TaskDialog.vue';
-import ConfirmBulkDialog from 'components/ConfirmBulkDialog.vue';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -144,8 +114,6 @@ export default defineComponent({
     PieChart: defineAsyncComponent(() => import('components/charts/PieChart.vue')),
     PriorityChart,
     DashboardWidget,
-    TaskList,
-    ConfirmBulkDialog,
   },
   setup() {
     const taskStore = useTaskStore();
@@ -227,14 +195,34 @@ export default defineComponent({
         .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
         .slice(0, 5),
     );
+    const recentActivities = computed(() =>
+      [...taskStore.tasks]
+        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+        .slice(0, 5)
+        .map((t) => {
+          let action = 'Updated';
+          let color = 'primary';
+          if (!t.is_complete && new Date(t.due_date) < new Date()) {
+            action = 'Overdue';
+            color = 'negative';
+          } else if (t.is_complete) {
+            action = 'Completed';
+            color = 'positive';
+          } else if (t.created_at === t.updated_at) {
+            action = 'Created';
+            color = 'info';
+          }
+          return {
+            action,
+            time: new Date(t.updated_at).toLocaleString(),
+            desc: t.title,
+            color,
+          };
+        }),
+    );
 
     function createTask(payload: Task) {
       taskStore.addTask(payload);
-    }
-
-    function bulkComplete() {
-      taskStore.tasks.forEach((t) => (t.is_complete = true));
-      taskService.saveAll(taskStore.tasks);
     }
 
     function bulkDelete() {
@@ -242,18 +230,9 @@ export default defineComponent({
       taskService.saveAll(taskStore.tasks);
     }
 
-    function confirmBulkComplete() {
-      bulkComplete();
-      bulkCompleteDialog.value = false;
-    }
-
     function confirmBulkDelete() {
       bulkDelete();
       bulkDeleteDialog.value = false;
-    }
-
-    function toggleFilters() {
-      console.log('Filter clicked');
     }
 
     return {
@@ -265,14 +244,21 @@ export default defineComponent({
       priorityData,
       recentTasks,
       createTask,
-      toggleFilters,
       statsData,
       loading,
       confirmBulkDelete,
-      confirmBulkComplete,
       bulkCompleteDialog,
       bulkDeleteDialog,
+      recentActivities,
+      taskStore,
     };
   },
 });
 </script>
+<style scoped>
+.activity-scroll {
+  max-height: 505px;
+  overflow-y: auto;
+  padding-left: 8px;
+}
+</style>
